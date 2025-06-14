@@ -1,55 +1,44 @@
 name = "fwhyadmin"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
-
-# Development environment
-[env.dev]
-name = "fwhyadmin-dev"
-
-# Staging environment
-[env.staging]
-name = "fwhyadmin-staging"
-
-# Production environment
-[env.production]
-name = "fwhyadmin-production"
+compatibility_flags = ["nodejs_compat"GI]
 
 # KV Namespaces
 [[kv_namespaces]]
 binding = "EVENTS_KV"
-id = "your-events-kv-id"
-preview_id = "your-events-kv-preview-id"
+id = "464d611d5ad8433cab6bcfba64d8424f"
 
 [[kv_namespaces]]
 binding = "SESSIONS_KV"
-id = "your-sessions-kv-id"
-preview_id = "your-sessions-kv-preview-id"
+id = "2038b95e785545af8486bc353c3cbe62"
 
 [[kv_namespaces]]
 binding = "GALLERY_KV"
-id = "your-gallery-kv-id"
-preview_id = "your-gallery-kv-preview-id"
+id = "3cd37bd71260436c8ed12078483e9fa4"
 
 [[kv_namespaces]]
 binding = "BLOG_KV"
-id = "your-blog-kv-id"
-preview_id = "your-blog-kv-preview-id"
+id = "6ee9ab6b71634a4eb3e66de82d8dfcdc"
 
 [[kv_namespaces]]
 binding = "CONFIG_KV"
-id = "your-config-kv-id"
-preview_id = "your-config-kv-preview-id"
+id = "d54801ef0fb0443e850ee532ad1384b6"
+
+# R2 Bucket bindings
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "unified-assets-dev"
+
+# Custom domains
+[[routes]]
+pattern = "admin.farewellcafe.com/*"
+zone_name = "farewellcafe.com"
 
 # Environment variables
 [vars]
-ENVIRONMENT = "development"
-ALLOWED_ORIGINS = "http://localhost:8080,https://your-dev-domain.com"
-
-# Production environment variables
-[env.production.vars]
 ENVIRONMENT = "production"
-ALLOWED_ORIGINS = "https://farewellcafe.com,https://admin.farewellcafe.com"
+ALLOWED_ORIGINS = "https://farewellcafe.com,https://www.farewellcafe.com,https://dev.farewellcafe.com,https://admin.farewellcafe.com"
+ADMIN_API_TOKEN = "prod-admin-token-2025-secure"
 
 # Staging environment variables
 [env.staging.vars]
