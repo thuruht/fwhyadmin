@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farewell/Howdy Admin Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --error-color: #dc2626;
+            --warning-color: #d97706;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab-container {
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 0;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .events-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .event-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .event-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: var(--bg-color);
+        }
+
+        .event-info {
+            flex: 1;
+        }
+
+        .event-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .event-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 15px;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .file-upload {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .file-upload.dragover {
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .priority-high {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--error-color);
+        }
+
+        .priority-medium {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--warning-color);
+        }
+
+        .venue-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .venue-farewell {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+        }
+
+        .venue-howdy {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success-color);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(37, 99, 235, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(5, 150, 105, 0.3);
+        }
+
+        .alert-error {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--error-color);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Farewell/Howdy Admin</h1>
+            <div class="user-info">
+                <span>Welcome, Admin</span>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <h3 id="total-events">0</h3>
+                <p>Total Events</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="upcoming-events">0</h3>
+                <p>Upcoming Events</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="total-flyers">0</h3>
+                <p>Total Flyers</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="newsletter-subscribers">0</h3>
+                <p>Newsletter Subscribers</p>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="dashboard-grid">
+            <!-- Left Column: Quick Actions -->
+            <div class="section">
+                <h2>Quick Actions</h2>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn btn-primary" onclick="openEventModal()">
+                        ➕ Add New Event
+                    </button>
+                    <button class="btn btn-primary" onclick="openFlyerModal()">
+                        🖼️ Upload Flyer
+                    </button>
+                    <button class="btn btn-secondary" onclick="openBatchUpload()">
+                        📁 Batch Upload
+                    </button>
+                    <button class="btn btn-secondary" onclick="openMenuEditor()">
+                        🍽️ Edit Menu
+                    </button>
+                    <button class="btn btn-secondary" onclick="openHoursEditor()">
+                        🕐 Edit Hours
+                    </button>
+                </div>
+
+                <!-- Priority Todo Items -->
+                <div style="margin-top: 30px;">
+                    <h3>Priority Tasks</h3>
+                    <div style="margin-top: 15px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <span class="priority-badge priority-high">High</span>
+                            <span>Merge Farewell/Howdy calendars</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <span class="priority-badge priority-medium">Medium</span>
+                            <span>Update street team email</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <span class="priority-badge priority-medium">Medium</span>
+                            <span>Add YouTube video carousel</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Event Management -->
+            <div class="section">
+                <h2>Event Management</h2>
+                
+                <!-- Venue Filter -->
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+                    <label for="venue-filter">Filter by venue:</label>
+                    <select id="venue-filter" onchange="filterEvents()">
+                        <option value="all">All Venues</option>
+                        <option value="farewell">Farewell</option>
+                        <option value="howdy">Howdy</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="refreshEvents()">Refresh</button>
+                </div>
+
+                <!-- Events List -->
+                <div class="events-list" id="events-list">
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <div class="loading"></div>
+                        <p style="margin-top: 10px;">Loading events...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Section -->
+        <div class="section">
+            <div class="tab-container">
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="switchTab('flyers')">Flyer Management</button>
+                    <button class="tab-btn" onclick="switchTab('slideshow')">Slideshow Order</button>
+                    <button class="tab-btn" onclick="switchTab('newsletter')">Newsletter</button>
+                    <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
+                </div>
+            </div>
+
+            <!-- Flyer Management Tab -->
+            <div id="flyers-tab" class="tab-content active">
+                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+                    <h3>Flyer Management</h3>
+                    <button class="btn btn-primary" onclick="openFlyerModal()">Upload New Flyer</button>
+                </div>
+                <div id="flyers-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+                    <!-- Flyers will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Slideshow Order Tab -->
+            <div id="slideshow-tab" class="tab-content">
+                <h3>Slideshow Order Management</h3>
+                <div style="margin-bottom: 20px;">
+                    <label for="slideshow-venue">Venue:</label>
+                    <select id="slideshow-venue" onchange="loadSlideshow()">
+                        <option value="farewell">Farewell</option>
+                        <option value="howdy">Howdy</option>
+                    </select>
+                </div>
+                <div id="slideshow-order" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; min-height: 300px;">
+                    <!-- Sortable slideshow items will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Newsletter Tab -->
+            <div id="newsletter-tab" class="tab-content">
+                <h3>Newsletter Management</h3>
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="createNewsletter()">Create Newsletter</button>
+                    <button class="btn btn-secondary" onclick="viewSubscribers()">View Subscribers</button>
+                </div>
+                <div id="newsletter-list">
+                    <!-- Newsletter posts will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content">
+                <h3>System Settings</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Street Team Email</label>
+                        <input type="email" id="street-team-email" value="booking@farewellcafe.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Street Team Name</label>
+                        <input type="text" id="street-team-name" value="Farewell Flyer Friends">
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="saveSettings()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="event-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="event-modal-title">Add New Event</h3>
+                <button class="close-btn" onclick="closeModal('event-modal')">&times;</button>
+            </div>
+            <form id="event-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Event Title *</label>
+                        <input type="text" id="event-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Venue *</label>
+                        <select id="event-venue" required onchange="updateVenueDefaults()">
+                            <option value="">Select Venue</option>
+                            <option value="farewell">Farewell</option>
+                            <option value="howdy">Howdy</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" id="event-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Time</label>
+                        <input type="text" id="event-time" placeholder="Doors at 7pm / Music at 8pm">
+                    </div>
+                    <div class="form-group">
+                        <label>Age Restriction</label>
+                        <input type="text" id="event-age" placeholder="21+ unless with parent or legal guardian">
+                    </div>
+                    <div class="form-group">
+                        <label>Suggested Price</label>
+                        <input type="text" id="event-price" placeholder="$10-15">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="event-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Ticket URL</label>
+                    <input type="url" id="event-ticket-url" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>Flyer Upload</label>
+                    <div class="file-upload" onclick="document.getElementById('event-flyer').click()">
+                        <input type="file" id="event-flyer" accept="image/*" style="display: none;" onchange="handleFlyerUpload(this)">
+                        <p>Click or drag flyer image here</p>
+                        <div id="flyer-preview"></div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('event-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentEvents = [];
+        let currentFlyers = [];
+        let currentUser = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+        });
+
+        async function initializeDashboard() {
+            try {
+                // Check authentication
+                const authCheck = await fetch('/api/auth/check');
+                if (!authCheck.ok) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                // Load initial data
+                await Promise.all([
+                    loadEvents(),
+                    loadStats(),
+                    loadFlyers()
+                ]);
+
+            } catch (error) {
+                console.error('Failed to initialize dashboard:', error);
+                showAlert('Failed to load dashboard data', 'error');
+            }
+        }
+
+        // Event management functions
+        async function loadEvents() {
+            try {
+                const venue = document.getElementById('venue-filter').value;
+                const response = await fetch(`/api/events?venue=${venue}&thumbnails=true`);
+                const data = await response.json();
+                
+                currentEvents = data.events || [];
+                renderEvents();
+                
+            } catch (error) {
+                console.error('Failed to load events:', error);
+                showAlert('Failed to load events', 'error');
+            }
+        }
+
+        function renderEvents() {
+            const container = document.getElementById('events-list');
+            
+            if (currentEvents.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <p>No events found.</p>
+                        <button class="btn btn-primary" onclick="openEventModal()" style="margin-top: 15px;">
+                            Add First Event
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = currentEvents.map(event => `
+                <div class="event-item">
+                    <img src="${event.thumbnail_url || '/img/placeholder.png'}" 
+                         alt="${event.title}" class="event-thumbnail">
+                    <div class="event-info">
+                        <h4>${event.title}</h4>
+                        <div class="event-meta">
+                            <span>${event.date_formatted}</span>
+                            <span class="venue-badge venue-${event.venue}">${event.venue_display}</span>
+                            <span>${event.default_time}</span>
+                            <span>${event.age_restriction}</span>
+                        </div>
+                    </div>
+                    <div class="event-actions">
+                        <button class="btn btn-secondary" onclick="editEvent('${event.id}')">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteEvent('${event.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Venue defaults for auto-population (from todo list)
+        function updateVenueDefaults() {
+            const venue = document.getElementById('event-venue').value;
+            const timeField = document.getElementById('event-time');
+            const ageField = document.getElementById('event-age');
+
+            if (venue === 'farewell') {
+                ageField.value = '21+ unless with parent or legal guardian';
+                timeField.value = 'Doors at 7pm / Music at 8pm';
+            } else if (venue === 'howdy') {
+                ageField.value = 'All ages';
+                timeField.value = 'Doors at 7pm / Music at 8pm';
+            }
+        }
+
+        // Modal functions
+        function openEventModal(eventId = null) {
+            const modal = document.getElementById('event-modal');
+            const title = document.getElementById('event-modal-title');
+            
+            if (eventId) {
+                title.textContent = 'Edit Event';
+                // Load event data
+                const event = currentEvents.find(e => e.id === eventId);
+                if (event) {
+                    document.getElementById('event-title').value = event.title;
+                    document.getElementById('event-venue').value = event.venue;
+                    document.getElementById('event-date').value = event.date;
+                    document.getElementById('event-time').value = event.time || '';
+                    document.getElementById('event-age').value = event.age_restriction || '';
+                    document.getElementById('event-price').value = event.suggested_price || '';
+                    document.getElementById('event-description').value = event.description || '';
+                    document.getElementById('event-ticket-url').value = event.ticket_url || '';
+                }
+            } else {
+                title.textContent = 'Add New Event';
+                document.getElementById('event-form').reset();
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Form submission
+        document.getElementById('event-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('title', document.getElementById('event-title').value);
+            formData.append('venue', document.getElementById('event-venue').value);
+            formData.append('date', document.getElementById('event-date').value);
+            formData.append('time', document.getElementById('event-time').value);
+            formData.append('age_restriction', document.getElementById('event-age').value);
+            formData.append('suggested_price', document.getElementById('event-price').value);
+            formData.append('description', document.getElementById('event-description').value);
+            formData.append('ticket_url', document.getElementById('event-ticket-url').value);
+            
+            const flyerFile = document.getElementById('event-flyer').files[0];
+            if (flyerFile) {
+                formData.append('flyer', flyerFile);
+            }
+
+            try {
+                const response = await fetch('/api/events', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    showAlert('Event saved successfully!', 'success');
+                    closeModal('event-modal');
+                    loadEvents();
+                    loadStats();
+                } else {
+                    const error = await response.json();
+                    showAlert(error.message || 'Failed to save event', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to save event:', error);
+                showAlert('Failed to save event', 'error');
+            }
+        });
+
+        // Utility functions
+        function filterEvents() {
+            loadEvents();
+        }
+
+        function refreshEvents() {
+            loadEvents();
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+
+            // Load tab-specific data
+            if (tabName === 'flyers') {
+                loadFlyers();
+            } else if (tabName === 'slideshow') {
+                loadSlideshow();
+            } else if (tabName === 'newsletter') {
+                loadNewsletter();
+            }
+        }
+
+        async function loadStats() {
+            try {
+                // Get event counts
+                const eventsResponse = await fetch('/api/events?venue=all');
+                const eventsData = await eventsResponse.json();
+                
+                const totalEvents = eventsData.events?.length || 0;
+                const upcomingEvents = eventsData.events?.filter(e => new Date(e.date) > new Date()).length || 0;
+
+                document.getElementById('total-events').textContent = totalEvents;
+                document.getElementById('upcoming-events').textContent = upcomingEvents;
+
+                // Get flyer counts
+                const flyersResponse = await fetch('/api/flyers');
+                const flyersData = await flyersResponse.json();
+                document.getElementById('total-flyers').textContent = flyersData.flyers?.length || 0;
+
+                // Newsletter subscribers (placeholder)
+                document.getElementById('newsletter-subscribers').textContent = '0';
+
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        async function loadFlyers() {
+            // Placeholder for flyer loading
+            console.log('Loading flyers...');
+        }
+
+        async function loadSlideshow() {
+            // Placeholder for slideshow loading
+            console.log('Loading slideshow...');
+        }
+
+        async function loadNewsletter() {
+            // Placeholder for newsletter loading
+            console.log('Loading newsletter...');
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            const header = container.querySelector('.header');
+            container.insertBefore(alertDiv, header.nextSibling);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                fetch('/api/auth/logout', { method: 'POST' })
+                    .then(() => {
+                        window.location.href = '/login';
+                    });
+            }
+        }
+
+        // Placeholder functions for future implementation
+        function openFlyerModal() { console.log('Opening flyer modal...'); }
+        function openBatchUpload() { console.log('Opening batch upload...'); }
+        function openMenuEditor() { console.log('Opening menu editor...'); }
+        function openHoursEditor() { console.log('Opening hours editor...'); }
+        function editEvent(id) { openEventModal(id); }
+        function deleteEvent(id) { 
+            if (confirm('Are you sure you want to delete this event?')) {
+                console.log('Deleting event:', id);
+            }
+        }
+        function createNewsletter() { console.log('Creating newsletter...'); }
+        function viewSubscribers() { console.log('Viewing subscribers...'); }
+        function saveSettings() { 
+            showAlert('Settings saved successfully!', 'success');
+        }
+        function handleFlyerUpload(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const preview = document.getElementById('flyer-preview');
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" style="max-width: 200px; max-height: 200px; margin-top: 10px; border-radius: 4px;">`;
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+name = "fwhyadmin"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Development environment
+[env.dev]
+name = "fwhyadmin-dev"
+
+# Staging environment
+[env.staging]
+name = "fwhyadmin-staging"
+
+# Production environment
+[env.production]
+name = "fwhyadmin-production"
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "EVENTS_KV"
+id = "your-events-kv-id"
+preview_id = "your-events-kv-preview-id"
+
+[[kv_namespaces]]
+binding = "SESSIONS_KV"
+id = "your-sessions-kv-id"
+preview_id = "your-sessions-kv-preview-id"
+
+[[kv_namespaces]]
+binding = "GALLERY_KV"
+id = "your-gallery-kv-id"
+preview_id = "your-gallery-kv-preview-id"
+
+[[kv_namespaces]]
+binding = "BLOG_KV"
+id = "your-blog-kv-id"
+preview_id = "your-blog-kv-preview-id"
+
+[[kv_namespaces]]
+binding = "CONFIG_KV"
+id = "your-config-kv-id"
+preview_id = "your-config-kv-preview-id"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "development"
+ALLOWED_ORIGINS = "http://localhost:8080,https://your-dev-domain.com"
+
+# Production environment variables
+[env.production.vars]
+ENVIRONMENT = "production"
+ALLOWED_ORIGINS = "https://farewellcafe.com,https://admin.farewellcafe.com"
+
+# Staging environment variables
+[env.staging.vars]
+ENVIRONMENT = "staging"
+ALLOWED_ORIGINS = "https://staging.farewellcafe.com,https://admin-staging.farewellcafe.com"

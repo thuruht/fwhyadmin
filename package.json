@@ -1,0 +1,28 @@
+{
+  "name": "farewell-howdy-unified-admin",
+  "version": "1.0.0",
+  "description": "Unified admin backend for Farewell Cafe and Howdy venues - handles events, gallery, newsletter, menu, and hours management",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "cloudflare-workers",
+    "events",
+    "admin",
+    "api",
+    "venue-management"
+  ],
+  "author": "Farewell/Howdy Team",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "dependencies": {
+    "linkedom": "^0.16.0"
+  }
+}
