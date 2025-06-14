@@ -12,7 +12,7 @@
 
 import { handleCORS } from './middleware/cors.js';
 import { authenticate } from './middleware/auth.js';
-import { handleEvents } from './handlers/events.js';
+import { EventsHandler } from './handlers/events.js';
 import { handleGallery } from './handlers/gallery.js';
 import { handleBlog } from './handlers/blog.js';
 import { handleMenu } from './handlers/menu.js';
@@ -33,7 +33,8 @@ export default {
     try {
       // Public endpoints (no auth required)
       if (path.startsWith('/api/events/list')) {
-        const response = await handleEvents(request, env, 'list');
+        const eventsHandler = new EventsHandler(env);
+        const response = await eventsHandler.handleRequest(request);
         return handleCORS(response);
       }
 
@@ -204,8 +205,8 @@ export default {
 
       // Route authenticated requests
       if (path.startsWith('/api/events')) {
-        const action = path.split('/')[3] || 'list';
-        const response = await handleEvents(request, env, action);
+        const eventsHandler = new EventsHandler(env);
+        const response = await eventsHandler.handleRequest(request);
         return handleCORS(response);
       }
 

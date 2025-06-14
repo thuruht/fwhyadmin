@@ -11,11 +11,11 @@ This is the unified admin backend for the Farewell and Howdy venues, built as a 
 - **Venue-Specific Defaults**: Auto-populate venue-specific fields based on todo requirements
 - **Admin Dashboard**: Comprehensive web interface for management
 - **Session-Based Authentication**: Secure login system with session management
+- **Newsletter Integration**: Kit (ConvertKit) powered newsletter system
+- **Hours Management**: Operating hours updated with spring schedule
 
 ### 🔄 In Development
 - **Menu Management**: Edit food/drink menus and prices
-- **Hours Management**: Update operating hours
-- **Newsletter Management**: Create and manage newsletter content
 - **Slideshow Management**: Organize flyer slideshows per venue
 - **Analytics**: View event statistics and engagement
 
