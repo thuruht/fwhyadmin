@@ -243,8 +243,8 @@ export default {
 
       // Migration endpoint (admin auth required)
       if (path.startsWith('/api/migrate')) {
-        const authResult = await authenticate(request, env);
-        if (!authResult.authenticated) {
+        const authResult = await authenticate(request, env); // Re-enable auth
+        if (!authResult.success) {
           return handleCORS(new Response(JSON.stringify({ error: 'Unauthorized' }), { 
             status: 401, 
             headers: { 'Content-Type': 'application/json' } 
@@ -256,14 +256,15 @@ export default {
 
       // Default 404
       return handleCORS(new Response(
-        JSON.stringify({ error: 'Not Found' }), 
+        JSON.stringify({ error: 'Not Found', requestedPath: path }), 
         { status: 404, headers: { 'Content-Type': 'application/json' } }
       ));
 
     } catch (error) {
       console.error('Worker error:', error);
+      // Also add path to error responses for more context
       return handleCORS(new Response(
-        JSON.stringify({ error: 'Internal Server Error' }), 
+        JSON.stringify({ error: 'Internal Server Error', details: error.message, requestedPath: path }), 
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       ));
     }

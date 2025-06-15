@@ -1,0 +1,706 @@
+/**
+ * Data Migration Handler
+ * 
+ * This handler helps migrate data from the existing workers to the unified backend:
+ * - Inspect existing KV namespaces and D1 databases
+ * - Copy blog posts, events, and flyer data
+ * - Transform data to new unified format
+ */
+
+/**
+ * Handle migration requests
+ */
+export async function handleMigration(request, env) {
+  const url = new URL(request.url);
+  const action = url.searchParams.get('action');
+  
+  try {
+    switch (action) {
+      case 'inspect':
+        return await inspectExistingData(env);
+      case 'migrate-blog':
+        return await migrateBlogData(env);
+      case 'migrate-events':
+        return await migrateEventData(env);
+      case 'migrate-gallery':
+        return await migrateGalleryData(env);
+      case 'copy-r2':
+        return await copyR2Data(env);
+      default:
+        return new Response(JSON.stringify({
+          error: 'Invalid action',
+          availableActions: ['inspect', 'migrate-blog', 'migrate-events', 'migrate-gallery', 'copy-r2']
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+    }
+  } catch (error) {
+    return new Response(JSON.stringify({
+      error: 'Migration failed',
+      details: error.message
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+/**
+ * Inspect existing data sources
+ */
+async function inspectExistingData(env) {
+  const report = {
+    timestamp: new Date().toISOString(),
+    kvNamespaces: {},
+    r2Buckets: {},
+    summary: {}
+  };
+
+  // Check KV namespaces (if they exist in the environment)
+  const kvSources = [
+    'EVENTS_FAREWELL',
+    'EVENTS_HOWDY', 
+    'bl0wkv',
+    'fff_kv'
+  ];
+
+  for (const kvName of kvSources) {
+    if (env[kvName]) {
+      try {
+        // Get a sample of keys to understand structure
+        const keys = await env[kvName].list({ limit: 10 });
+        report.kvNamespaces[kvName] = {
+          available: true,
+          sampleKeys: keys.keys.map(k => ({ name: k.name, metadata: k.metadata }))
+        };
+      } catch (error) {
+        report.kvNamespaces[kvName] = {
+          available: true,
+          error: error.message
+        };
+      }
+    } else {
+      report.kvNamespaces[kvName] = { available: false };
+    }
+  }
+
+  // Check R2 buckets
+  try {
+    // List objects in legacy R2 bucket
+    if (env.R2_BUCKET) {
+      const objects = await env.R2_BUCKET.list({ limit: 20 });
+      report.r2Buckets.primary = {
+        available: true,
+        objectCount: objects.objects.length,
+        sampleObjects: objects.objects.map(obj => ({
+          key: obj.key,
+          size: obj.size,
+          modified: obj.uploaded
+        }))
+      };
+    }
+  } catch (error) {
+    report.r2Buckets.primary = {
+      available: false,
+      error: error.message
+    };
+  }
+
+  // Generate summary
+  report.summary = {
+    kvNamespacesFound: Object.values(report.kvNamespaces).filter(ns => ns.available).length,
+    r2BucketsFound: Object.values(report.r2Buckets).filter(bucket => bucket.available).length,
+    migrationRecommendations: generateMigrationRecommendations(report)
+  };
+
+  return new Response(JSON.stringify(report, null, 2), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+/**
+ * Migrate blog data from existing sources
+ */
+async function migrateBlogData(env) {
+  const results = {
+    timestamp: new Date().toISOString(),
+    migrated: 0,
+    errors: []
+  };
+
+  try {
+    // Check if we have access to blog KV (bl0wkv)
+    if (env.bl0wkv) {
+      // Get all blog posts
+      const { keys } = await env.bl0wkv.list();
+      
+      for (const key of keys) {
+        try {
+          const data = await env.bl0wkv.get(key.name, 'json');
+          
+          if (data && typeof data === 'object') {
+            // Transform to unified format
+            const unifiedPost = {
+              id: key.name,
+              title: data.title || 'Untitled',
+              content: data.content || data.text || '',
+              image_url: data.image_url || data.imageUrl || null,
+              created_at: data.created_at || data.timestamp || new Date().toISOString(),
+              venue: data.venue || 'both', // Default to both venues
+              status: 'published'
+            };
+
+            // Store in unified blog KV
+            await env.BLOG_KV.put(`post_${key.name}`, JSON.stringify(unifiedPost));
+            results.migrated++;
+          }
+        } catch (error) {
+          results.errors.push({
+            key: key.name,
+            error: error.message
+          });
+        }
+      }
+    }
+  } catch (error) {
+    results.errors.push({
+      operation: 'blog-migration',
+      error: error.message
+    });
+  }
+
+  return new Response(JSON.stringify(results, null, 2), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+/**
+ * Migrate event data from existing sources
+ */
+async function migrateEventData(env) {
+  const results = {
+    timestamp: new Date().toISOString(),
+    migrated: 0,
+    errors: [],
+    venues: {
+      farewell: 0,
+      howdy: 0
+    }
+  };
+
+  try {
+    // Migrate from Farewell events KV
+    if (env.EVENTS_FAREWELL) {
+      const { keys } = await env.EVENTS_FAREWELL.list();
+      
+      for (const key of keys) {
+        try {
+          const data = await env.EVENTS_FAREWELL.get(key.name, 'json');
+          
+          if (data) {
+            const unifiedEvent = transformEventData(data, 'farewell');
+            await env.EVENTS_KV.put(`event_${unifiedEvent.id}`, JSON.stringify(unifiedEvent));
+            results.migrated++;
+            results.venues.farewell++;
+          }
+        } catch (error) {
+          results.errors.push({
+            key: key.name,
+            venue: 'farewell',
+            error: error.message
+          });
+        }
+      }
+    }
+
+    // Migrate from Howdy events KV
+    if (env.EVENTS_HOWDY) {
+      const { keys } = await env.EVENTS_HOWDY.list();
+      
+      for (const key of keys) {
+        try {
+          const data = await env.EVENTS_HOWDY.get(key.name, 'json');
+          
+          if (data) {
+            const unifiedEvent = transformEventData(data, 'howdy');
+            await env.EVENTS_KV.put(`event_${unifiedEvent.id}`, JSON.stringify(unifiedEvent));
+            results.migrated++;
+            results.venues.howdy++;
+          }
+        } catch (error) {
+          results.errors.push({
+            key: key.name,
+            venue: 'howdy',
+            error: error.message
+          });
+        }
+      }
+    }
+  } catch (error) {
+    results.errors.push({
+      operation: 'event-migration',
+      error: error.message
+    });
+  }
+
+  return new Response(JSON.stringify(results, null, 2), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+/**
+ * Migrate gallery/flyer data
+ */
+async function migrateGalleryData(env) {
+  const results = {
+    timestamp: new Date().toISOString(),
+    migrated: 0,
+    errors: []
+  };
+
+  try {
+    // Check if we have access to gallery KV (fff_kv)
+    if (env.fff_kv) {
+      const { keys } = await env.fff_kv.list();
+      
+      for (const key of keys) {
+        try {
+          const data = await env.fff_kv.get(key.name, 'json');
+          
+          if (data) {
+            // Transform to unified format
+            const unifiedFlyer = {
+              id: key.name,
+              title: data.title || 'Untitled Event',
+              date: data.date || new Date().toISOString().split('T')[0],
+              time: data.time || '',
+              venue: data.venue || data.type || 'farewell',
+              description: data.description || '',
+              flyer_url: data.imageUrl || data.flyerUrl || '',
+              thumbnail_url: data.thumbnailUrl || data.flyerThumbnail || data.imageUrl || data.flyerUrl || '',
+              suggested_price: data.suggestedPrice || '',
+              ticket_url: data.ticketLink || '',
+              created_at: data.created || new Date().toISOString(),
+              status: 'published'
+            };
+
+            // Store in unified gallery KV
+            await env.GALLERY_KV.put(`flyer_${key.name}`, JSON.stringify(unifiedFlyer));
+            results.migrated++;
+          }
+        } catch (error) {
+          results.errors.push({
+            key: key.name,
+            error: error.message
+          });
+        }
+      }
+    }
+  } catch (error) {
+    results.errors.push({
+      operation: 'gallery-migration',
+      error: error.message
+    });
+  }
+
+  return new Response(JSON.stringify(results, null, 2), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+/**
+ * Copy R2 data between buckets (backup existing data to new bucket)
+ */
+async function copyR2Data(env) {
+  const results = {
+    timestamp: new Date().toISOString(),
+    copied: 0,
+    errors: [],
+    note: "Copying from existing production bucket (fyg410r3) to new backup bucket (unified-assets-dev)"
+  };
+
+  try {
+    if (env.R2_BUCKET && env.NEW_BUCKET) {
+      // List objects in existing production bucket
+      const objects = await env.R2_BUCKET.list({ limit: 100 });
+      
+      for (const obj of objects.objects) {
+        try {
+          // Get object from existing production bucket
+          const sourceObject = await env.R2_BUCKET.get(obj.key);
+          
+          if (sourceObject) {
+            // Copy to new backup bucket
+            await env.NEW_BUCKET.put(obj.key, sourceObject.body, {
+              httpMetadata: sourceObject.httpMetadata,
+              customMetadata: sourceObject.customMetadata
+            });
+            results.copied++;
+          }
+        } catch (error) {
+          results.errors.push({
+            key: obj.key,
+            error: error.message
+          });
+        }
+      }
+    }
+  } catch (error) {
+    results.errors.push({
+      operation: 'r2-copy',
+      error: error.message
+    });
+  }
+
+  return new Response(JSON.stringify(results, null, 2), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+/**
+ * Transform event data to unified format
+ */
+function transformEventData(eventData, venue) {
+  return {
+    id: eventData.id || crypto.randomUUID(),
+    title: eventData.title || 'Untitled Event',
+    date: eventData.date || new Date().toISOString().split('T')[0],
+    time: eventData.time || (venue === 'howdy' ? 'All ages' : 'Doors at 7pm / Music at 8pm'),
+    venue: venue,
+    description: eventData.description || '',
+    flyer_url: eventData.flyerUrl || eventData.imageUrl || '',
+    thumbnail_url: eventData.flyerThumbnail || eventData.flyerUrl || eventData.imageUrl || '',
+    suggested_price: eventData.suggestedPrice || '',
+    ticket_url: eventData.ticketLink || '',
+    age_restriction: venue === 'howdy' ? 'All ages' : '21+ unless with parent or legal guardian',
+    created_at: eventData.created || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    status: 'published',
+    source: 'migration'
+  };
+}
+
+/**
+ * Generate migration recommendations
+ */
+function generateMigrationRecommendations(report) {
+  const recommendations = [];
+  
+  if (report.kvNamespaces.bl0wkv?.available) {
+    recommendations.push('Run migrate-blog to copy blog posts');
+  }
+  
+  if (report.kvNamespaces.EVENTS_FAREWELL?.available || report.kvNamespaces.EVENTS_HOWDY?.available) {
+    recommendations.push('Run migrate-events to copy event data');
+  }
+  
+  if (report.kvNamespaces.fff_kv?.available) {
+    recommendations.push('Run migrate-gallery to copy flyer data');
+  }
+  
+  if (report.r2Buckets.primary?.available) {
+    recommendations.push('Run copy-r2 to copy image files');
+  }
+  
+  return recommendations;
+}
+
+/**
+ * Comprehensive inspection of all data sources including D1 databases
+ */
+async function inspectComprehensiveData(env) {
+  const report = {
+    timestamp: new Date().toISOString(),
+    kvNamespaces: {},
+    d1Databases: {},
+    r2Buckets: {},
+    summary: {}
+  };
+
+  // Check all KV namespaces from wrangler.toml
+  const kvSources = [
+    'EVENTS_KV', 'SESSIONS_KV', 'GALLERY_KV', 'BLOG_KV', 'CONFIG_KV',
+    'EVENTS_FAREWELL', 'EVENTS_HOWDY', 'bl0wkv', 'fff_kv'
+  ];
+
+  for (const kvName of kvSources) {
+    if (env[kvName]) {
+      try {
+        const keys = await env[kvName].list({ limit: 20 });
+        const sampleData = [];
+        
+        // Get sample data from first few keys
+        for (let i = 0; i < Math.min(3, keys.keys.length); i++) {
+          const key = keys.keys[i];
+          try {
+            const value = await env[kvName].get(key.name, 'json');
+            sampleData.push({
+              key: key.name,
+              metadata: key.metadata,
+              dataPreview: typeof value === 'object' ? Object.keys(value) : typeof value
+            });
+          } catch (e) {
+            // Try as text if JSON fails
+            const value = await env[kvName].get(key.name, 'text');
+            sampleData.push({
+              key: key.name,
+              metadata: key.metadata,
+              dataPreview: value ? value.substring(0, 100) + '...' : 'empty'
+            });
+          }
+        }
+
+        report.kvNamespaces[kvName] = {
+          available: true,
+          keyCount: keys.keys.length,
+          sampleKeys: keys.keys.map(k => ({ name: k.name, metadata: k.metadata })),
+          sampleData: sampleData
+        };
+      } catch (error) {
+        report.kvNamespaces[kvName] = {
+          available: true,
+          error: error.message
+        };
+      }
+    } else {
+      report.kvNamespaces[kvName] = { available: false };
+    }
+  }
+
+  // Check all D1 databases from wrangler.toml
+  const d1Sources = [
+    'bl0wd1', 'farewell_list', 'howdy_list', 'fwhygal0r3_db'
+  ];
+
+  for (const d1Name of d1Sources) {
+    if (env[d1Name]) {
+      try {
+        // Get database schema information
+        const tablesResult = await env[d1Name].prepare(`
+          SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'
+        `).all();
+        
+        const tables = [];
+        for (const table of tablesResult.results) {
+          try {
+            // Get table info and sample data
+            const countResult = await env[d1Name].prepare(`SELECT COUNT(*) as count FROM ${table.name}`).first();
+            const sampleResult = await env[d1Name].prepare(`SELECT * FROM ${table.name} LIMIT 3`).all();
+            
+            tables.push({
+              name: table.name,
+              rowCount: countResult.count,
+              sampleRows: sampleResult.results
+            });
+          } catch (e) {
+            tables.push({
+              name: table.name,
+              error: e.message
+            });
+          }
+        }
+
+        report.d1Databases[d1Name] = {
+          available: true,
+          tables: tables
+        };
+      } catch (error) {
+        report.d1Databases[d1Name] = {
+          available: true,
+          error: error.message
+        };
+      }
+    } else {
+      report.d1Databases[d1Name] = { available: false };
+    }
+  }
+
+  // Check R2 buckets
+  const r2Sources = ['R2_BUCKET', 'NEW_BUCKET'];
+  
+  for (const r2Name of r2Sources) {
+    if (env[r2Name]) {
+      try {
+        const objects = await env[r2Name].list({ limit: 50 });
+        report.r2Buckets[r2Name] = {
+          available: true,
+          objectCount: objects.objects.length,
+          truncated: objects.truncated,
+          sampleObjects: objects.objects.slice(0, 10).map(obj => ({
+            key: obj.key,
+            size: obj.size,
+            modified: obj.uploaded
+          }))
+        };
+      } catch (error) {
+        report.r2Buckets[r2Name] = {
+          available: true,
+          error: error.message
+        };
+      }
+    } else {
+      report.r2Buckets[r2Name] = { available: false };
+    }
+  }
+
+  // Generate comprehensive summary
+  report.summary = {
+    kvNamespacesFound: Object.values(report.kvNamespaces).filter(ns => ns.available).length,
+    d1DatabasesFound: Object.values(report.d1Databases).filter(db => db.available).length,
+    r2BucketsFound: Object.values(report.r2Buckets).filter(bucket => bucket.available).length,
+    dataSourcesWithContent: generateDataSourceSummary(report),
+    migrationRecommendations: generateComprehensiveMigrationRecommendations(report)
+  };
+
+  return new Response(JSON.stringify(report, null, 2), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+/**
+ * Generate data source summary
+ */
+function generateDataSourceSummary(report) {
+  const sources = [];
+  
+  // Check KV namespaces with content
+  Object.entries(report.kvNamespaces).forEach(([name, info]) => {
+    if (info.available && info.keyCount > 0) {
+      sources.push(`${name}: ${info.keyCount} keys`);
+    }
+  });
+  
+  // Check D1 databases with content
+  Object.entries(report.d1Databases).forEach(([name, info]) => {
+    if (info.available && info.tables) {
+      const totalRows = info.tables.reduce((sum, table) => sum + (table.rowCount || 0), 0);
+      if (totalRows > 0) {
+        sources.push(`${name}: ${info.tables.length} tables, ${totalRows} total rows`);
+      }
+    }
+  });
+  
+  // Check R2 buckets with content
+  Object.entries(report.r2Buckets).forEach(([name, info]) => {
+    if (info.available && info.objectCount > 0) {
+      sources.push(`${name}: ${info.objectCount} objects`);
+    }
+  });
+  
+  return sources;
+}
+
+/**
+ * Generate comprehensive migration recommendations
+ */
+function generateComprehensiveMigrationRecommendations(report) {
+  const recommendations = [];
+  
+  // KV migration recommendations
+  if (report.kvNamespaces.bl0wkv?.keyCount > 0) {
+    recommendations.push('Run migrate-blog to copy blog posts from bl0wkv');
+  }
+  
+  if (report.kvNamespaces.EVENTS_FAREWELL?.keyCount > 0 || report.kvNamespaces.EVENTS_HOWDY?.keyCount > 0) {
+    recommendations.push('Run migrate-events to copy event data from venue KV namespaces');
+  }
+  
+  if (report.kvNamespaces.fff_kv?.keyCount > 0) {
+    recommendations.push('Run migrate-gallery to copy flyer data from fff_kv');
+  }
+  
+  // D1 migration recommendations
+  const d1WithData = Object.entries(report.d1Databases).filter(([name, info]) => {
+    return info.available && info.tables && info.tables.some(table => table.rowCount > 0);
+  });
+  
+  if (d1WithData.length > 0) {
+    recommendations.push(`Run migrate-d1 to copy data from D1 databases: ${d1WithData.map(([name]) => name).join(', ')}`);
+  }
+  
+  // R2 migration recommendations
+  if (report.r2Buckets.R2_BUCKET?.objectCount > 0) {
+    recommendations.push('Run copy-r2 to copy files from R2_BUCKET');
+  }
+  
+  return recommendations;
+}
+
+/**
+ * Migrate data from D1 databases
+ */
+async function migrateD1Data(env) {
+  const results = {
+    timestamp: new Date().toISOString(),
+    migrated: {},
+    errors: []
+  };
+
+  const d1Sources = ['bl0wd1', 'farewell_list', 'howdy_list', 'fwhygal0r3_db'];
+  
+  for (const d1Name of d1Sources) {
+    if (env[d1Name]) {
+      try {
+        // Get all tables
+        const tablesResult = await env[d1Name].prepare(`
+          SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'
+        `).all();
+        
+        results.migrated[d1Name] = {};
+        
+        for (const table of tablesResult.results) {
+          try {
+            const data = await env[d1Name].prepare(`SELECT * FROM ${table.name}`).all();
+            
+            // Store in appropriate new KV namespace based on data type and source
+            let targetKV = null;
+            let transformedData = [];
+            
+            // Determine target based on database and table name
+            if (d1Name.includes('blog') || table.name.includes('blog') || table.name.includes('post')) {
+              targetKV = env.BLOG_KV;
+            } else if (d1Name.includes('event') || table.name.includes('event')) {
+              targetKV = env.EVENTS_KV;
+            } else if (d1Name.includes('gal') || table.name.includes('gallery') || table.name.includes('flyer')) {
+              targetKV = env.GALLERY_KV;
+            } else {
+              // Default to CONFIG_KV for other data
+              targetKV = env.CONFIG_KV;
+            }
+            
+            if (targetKV) {
+              let migratedCount = 0;
+              for (const row of data.results) {
+                const key = `d1_${d1Name}_${table.name}_${row.id || Math.random().toString(36).substr(2, 9)}`;
+                await targetKV.put(key, JSON.stringify({
+                  ...row,
+                  source: `d1_migration_${d1Name}`,
+                  table: table.name,
+                  migrated_at: new Date().toISOString()
+                }));
+                migratedCount++;
+              }
+              
+              results.migrated[d1Name][table.name] = {
+                rows: data.results.length,
+                migrated: migratedCount,
+                target: 'KV'
+              };
+            }
+            
+          } catch (error) {
+            results.errors.push(`Error migrating table ${table.name} from ${d1Name}: ${error.message}`);
+          }
+        }
+        
+      } catch (error) {
+        results.errors.push(`Error accessing D1 database ${d1Name}: ${error.message}`);
+      }
+    }
+  }
+
+  return new Response(JSON.stringify(results, null, 2), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
