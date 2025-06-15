@@ -18,6 +18,7 @@ import { handleBlog } from './handlers/blog.js';
 import { handleMenu } from './handlers/menu.js';
 import { handleHours } from './handlers/hours.js';
 import { handleAdmin } from './handlers/admin.js';
+import { handleMigration } from './handlers/migration.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -237,6 +238,19 @@ export default {
       if (path.startsWith('/api/admin')) {
         const action = path.split('/')[3] || 'dashboard';
         const response = await handleAdmin(request, env, action);
+        return handleCORS(response);
+      }
+
+      // Migration endpoint (admin auth required)
+      if (path.startsWith('/api/migrate')) {
+        const authResult = await authenticate(request, env);
+        if (!authResult.authenticated) {
+          return handleCORS(new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+            status: 401, 
+            headers: { 'Content-Type': 'application/json' } 
+          }));
+        }
+        const response = await handleMigration(request, env);
         return handleCORS(response);
       }
 
