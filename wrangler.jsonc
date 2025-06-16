@@ -31,19 +31,6 @@
     {
       "binding": "CONFIG_KV",
       "id": "d54801ef0fb0443e850ee532ad1384b6"
-    },
-    // Bindings for migration, to be removed later
-    {
-      "binding": "BL0WKV_MIGRATION",
-      "id": "81a20f7907684ba49b50ff0a07843f0e"
-    },
-    {
-      "binding": "EVENTS_FAREWELL",
-      "id": "6a2dc6b81774454dba76199798f057df" 
-    },
-    {
-      "binding": "EVENTS_HOWDY",
-      "id": "ab5328a2ca6e4f10b9a4537039056cfc"
     }
   ],
   "d1_databases": [
