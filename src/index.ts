@@ -47,6 +47,11 @@ export default {
         return handleCORS(await handleBlog(request, env, 'public'));
       }
 
+      // Direct blog endpoints for frontend compatibility
+      if (path === '/posts' || path === '/featured') {
+        return handleCORS(await handleBlog(request, env, 'public'));
+      }
+
       if (path.startsWith('/api/menu/public')) {
         return handleCORS(await handleMenu(request, env, 'public'));
       }

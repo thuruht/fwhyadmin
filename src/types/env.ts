@@ -23,9 +23,11 @@ export interface Env {
   // R2 Buckets
   R2_BUCKET: R2Bucket;
   NEW_BUCKET: R2Bucket;
+  BLOG_IMAGES_R2: R2Bucket;
   
   // Environment Variables
   ENVIRONMENT: string;
+  R2_PUBLIC_URL_PREFIX: string;
   
   // Secrets (defined via wrangler secret put)
   ADMIN_PASSWORD?: string;
@@ -72,6 +74,7 @@ export interface BlogPost {
   image_url?: string;
   created_at: string;
   updated_at?: string;
+  slug?: string; // for SEO friendly URLs
 }
 
 // Session Types
