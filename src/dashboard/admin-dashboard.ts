@@ -301,6 +301,73 @@ export function generateDashboardHTML(): string {
       border: 1px solid rgba(155, 89, 182, 0.3);
     }
     
+    
+    .loading, .empty-message, .error-message {
+      text-align: center;
+      padding: 2rem;
+      font-size: 1.2rem;
+      color: var(--text-color);
+      font-family: var(--font-main);
+    }
+    
+    .empty-message {
+      color: var(--pupil);
+    }
+    
+    .error-message {
+      color: var(--redd);
+    }
+    
+    .event-item, .blog-item, .gallery-item {
+      background: var(--card-bg-color);
+      border: 1px solid var(--nav-border-color);
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      transition: all var(--transition-speed) ease;
+      box-shadow: -3px 3px 0px rgba(0, 0, 0, 0.2);
+      text-align: left;
+    }
+    
+    .event-item:hover, .blog-item:hover, .gallery-item:hover {
+      border-color: var(--accent-color);
+      transform: translateY(-2px);
+      box-shadow: -5px 5px 0px rgba(0, 0, 0, 0.3);
+    }
+    
+    .home-link {
+      background: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: 1px solid var(--nav-border-color);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-family: var(--font-main);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all var(--transition-speed) ease;
+      display: inline-block;
+      margin: 0.25rem;
+    }
+    
+    .home-link:hover {
+      background: var(--accent-color);
+      color: white;
+      transform: translateY(-1px);
+    }
+    
+    .venue-selector {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+    }
+    
+    .venue-button.active {
+      background: var(--secondary-bg-color);
+      color: white;
+    }
+    
     /* Notification system to replace alerts */
     .notification {
       position: fixed;
@@ -466,13 +533,17 @@ export function generateDashboardHTML(): string {
 
     // Show correct panel and load content
     function showPanel(panel) {
-      document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-      document.getElementById(panel + '-panel').classList.add('active');
-      document.querySelector(\`.admin-tab[onclick*="\${panel}"]\`).classList.add('active');
+      // Load the appropriate manager into the content area
       if(panel === 'events') loadEventsManager();
       if(panel === 'gallery') loadGalleryManager();
       if(panel === 'blog') loadBlogManager();
+      
+      // Update tab appearance
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      const tabs = document.querySelectorAll('.admin-tab');
+      if(panel === 'events') tabs[0].classList.add('active');
+      if(panel === 'gallery') tabs[1].classList.add('active');
+      if(panel === 'blog') tabs[2].classList.add('active');
     }
     
     // Load and display the events management interface
@@ -1311,9 +1382,6 @@ export function generateDashboardHTML(): string {
         showNotification('Error deleting post: ' + error.message, 'error');
       }
     }
-    
-    // Initialize the dashboard
-    showDashboard();
   </script>
 </body>
 </html>`;
