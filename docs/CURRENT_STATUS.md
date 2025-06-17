@@ -1,3 +1,5 @@
+# CURRENT_STATUS
+
 # Current Status of Farewell/Howdy Website and Admin System
 
 ## Frontend (dev.farewellcafe.com)

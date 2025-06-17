@@ -7,7 +7,7 @@ export function generateDashboardHTML(): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Farewell/Howdy</title>
-  <link rel="stylesheet" href="https://dev.farewellcafe.com/css/ccssss.css">
+  <link rel="stylesheet" href="./css/ccssss.css">
   <style>
     /* Admin-specific overrides using the 404 page style */
     body { 
@@ -24,7 +24,7 @@ export function generateDashboardHTML(): string {
     
     .admin-header { 
       width: 100%;
-      background: var(--primary-bg-color) url('https://dev.farewellcafe.com/img/bg4.png') center/cover no-repeat;
+      background: var(--primary-bg-color) url('/img/bg4.png') center/cover no-repeat;
       background-attachment: fixed; /* This prevents multiple loads on scrolling */
       border-bottom: 1px solid var(--nav-border-color);
       padding: 1rem 2rem; 
@@ -350,219 +350,19 @@ export function generateDashboardHTML(): string {
 </head>
 <body>
   <div class="admin-header">
-    <h1>ADMIN CONTROL CENTER</h1>
-    <button class="logout-btn" onclick="logout()">LOGOUT</button>
+    <h1>administration!</h1>
+    <button class="logout-btn" onclick="logout()">logout</button>
   </div>
-  
   <div class="admin-container">
     <div class="admin-tabs">
-      <button class="admin-tab active" onclick="showPanel('overview')">OVERVIEW</button>
-      <button class="admin-tab" onclick="showPanel('events')">EVENTS</button>
-      <button class="admin-tab" onclick="showPanel('blog')">BLOG</button>
+      <button class="admin-tab active" onclick="showPanel('events')">EVENTS</button>
       <button class="admin-tab" onclick="showPanel('gallery')">GALLERY</button>
-      <button class="admin-tab" onclick="showPanel('system')">SYSTEM</button>
+      <button class="admin-tab" onclick="showPanel('blog')">BLOG</button>
     </div>
-    
-    <!-- OVERVIEW PANEL -->
-    <div id="overview-panel" class="admin-panel active">
-      <div class="admin-grid">
-        <div class="admin-card">
-          <h3>SYSTEM STATUS</h3>
-          <p>Frontend: <span class="status operational">FULLY OPERATIONAL</span></p>
-          <p>API: <span class="status operational">FULLY OPERATIONAL</span></p>
-          <p>Blog: <span class="status operational">FULLY OPERATIONAL</span></p>
-          <p>Events: <span class="status operational">FULLY OPERATIONAL</span></p>
-          <p>Gallery: <span class="status operational">FULLY OPERATIONAL</span></p>
-        </div>
-        
-        <div class="admin-card">
-          <h3>QUICK ACTIONS</h3>
-          <button class="admin-btn" onclick="createNewEvent()">NEW EVENT</button>
-          <button class="admin-btn" onclick="createNewBlogPost()">NEW BLOG POST</button>
-          <button class="admin-btn" onclick="uploadImage()">UPLOAD IMAGE</button>
-          <button class="admin-btn danger" onclick="clearCache()">CLEAR CACHE</button>
-        </div>
-      </div>
-    </div>
-  </div>
-    }
-    .card p { 
-      color: #666; 
-      line-height: 1.6; 
-      margin-bottom: 1rem;
-    }
-    .btn { 
-      background: #3498db; 
-      color: white; 
-      border: none; 
-      padding: 0.75rem 1.5rem; 
-      border-radius: 4px; 
-      cursor: pointer; 
-      text-decoration: none;
-      display: inline-block;
-      transition: background 0.3s;
-    }
-    .btn:hover { background: #2980b9; }
-    .btn.secondary { background: #95a5a6; }
-    .btn.secondary:hover { background: #7f8c8d; }
-    .status { 
-      padding: 1rem; 
-      background: #ecf0f1; 
-      border-radius: 4px; 
-      margin-bottom: 2rem;
-    }
-    .status.online { background: #d5e8d4; border-left: 4px solid #27ae60; }
-    
-    /* Blog Manager Styles */
-    .blog-manager { margin-top: 1rem; }
-    .blog-actions { 
-      margin: 1rem 0; 
-      display: flex; 
-      gap: 1rem; 
-      flex-wrap: wrap;
-    }
-    .posts-list { margin-top: 1rem; }
-    .post-item { 
-      background: #f8f9fa; 
-      border: 1px solid #dee2e6; 
-      border-radius: 4px; 
-      padding: 1rem; 
-      margin-bottom: 1rem;
-    }
-    .post-item h4 { margin-bottom: 0.5rem; color: #2c3e50; }
-    .post-item p { margin-bottom: 0.5rem; color: #6c757d; }
-    .post-item small { color: #868e96; display: block; margin-bottom: 0.5rem; }
-    .post-actions { 
-      display: flex; 
-      gap: 0.5rem; 
-    }
-    .post-actions button { 
-      padding: 0.25rem 0.5rem; 
-      border: 1px solid #ccc; 
-      background: white; 
-      border-radius: 3px; 
-      cursor: pointer;
-    }
-    .post-actions button:hover { background: #f8f9fa; }
-    
-    /* Form Styles */
-    #post-form { max-width: 600px; }
-    #post-form > div { margin-bottom: 1rem; }
-    #post-form label { display: block; margin-bottom: 0.25rem; font-weight: bold; }
-    #post-form input, #post-form textarea { 
-      width: 100%; 
-      padding: 0.5rem; 
-      border: 1px solid #ccc; 
-      border-radius: 4px;
-    }
-    #post-form button { 
-      margin-right: 0.5rem; 
-      padding: 0.5rem 1rem; 
-      border: none; 
-      border-radius: 4px; 
-      cursor: pointer;
-    }
-    #post-form button[type="submit"] { background: #3498db; color: white; }
-    #post-form button[type="button"] { background: #95a5a6; color: white; }
-    
-    .quick-actions {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-bottom: 2rem;
-    }
-    @media (max-width: 768px) {
-      .container { padding: 0 1rem; }
-      .dashboard-grid { grid-template-columns: 1fr; }
-      .header { padding: 1rem; }
-      .quick-actions { flex-direction: column; }
-    }
-  </style>
-</head>
-<body data-state="farewell">
-  <header class="feader admin-header" style="min-height:212px;">
-    <div class="contain">
-      <div class="left">
-        <nav>
-          <ul>
-            <li><a href="#" onclick="showDashboard(); return false;">DASHBOARD</a></li>
-          </ul>
-        </nav>
-      </div>
-      <div class="right">
-        <h1 class="header-title">
-          <span class="span2">ADMIN</span>
-          <span class="sulk drop-wiggle"> & DASHBOARD</span>
-        </h1>
-      </div>
-    </div>
-  </header>
-  
-  <div class="logout-container" style="position: fixed; top: 10px; right: 10px; z-index: 200;">
-    <button class="logout-btn" onclick="logout()">LOGOUT</button>
-  </div>
-
-  <div class="admin-container">
     <div id="admin-content-area">
-      <!-- Content will be populated by JavaScript -->
+      <!-- Content panels will be loaded here -->
     </div>
   </div>
-    
-    <!-- This is the designated content area for all dynamic content -->
-    <div id="admin-content-area">
-      <div class="dashboard-grid">
-      <div class="card">
-        <h2>EVENTS</h2>
-        <p>Manage upcoming events, flyers, and venue scheduling for both Farewell and Howdy.</p>
-        <img src="https://dev.farewellcafe.com/img/fwcal.png" alt="Calendar" style="max-width: 100px; margin: 20px auto;">
-        <button class="home-link" onclick="navigateTo('/events')">MANAGE EVENTS</button>
-      </div>
-
-      <div class="card">
-        <h2>GALLERY</h2>
-        <p>Upload and organize event flyers, photos, and gallery content.</p>
-        <img src="https://dev.farewellcafe.com/img/fwm.png" alt="Gallery" style="max-width: 100px; margin: 20px auto;">
-        <button class="home-link" onclick="navigateTo('/gallery')">MANAGE GALLERY</button>
-      </div>
-
-      <div class="card">
-        <h2>BLOG</h2>
-        <p>Create blog posts, manage newsletter content, and featured information.</p>
-        <img src="https://dev.farewellcafe.com/img/fm.png" alt="Blog" style="max-width: 100px; margin: 20px auto;">
-        <button class="home-link" onclick="navigateTo('/blog')">MANAGE BLOG</button>
-      </div>
-
-      <div class="card">
-        <h2>MENU</h2>
-        <p>Update food and drink menus for both venues, including pricing and availability.</p>
-        <img src="https://dev.farewellcafe.com/img/beere.png" alt="Menu" style="max-width: 100px; margin: 20px auto;">
-        <button class="home-link" onclick="navigateTo('/menu')">MANAGE MENU</button>
-      </div>
-
-      <div class="card">
-        <h2>HOURS</h2>
-        <p>Set business hours, special holiday hours, and venue-specific schedules.</p>
-        <img src="https://dev.farewellcafe.com/img/fm2.png" alt="Hours" style="max-width: 100px; margin: 20px auto;">
-        <button class="home-link" onclick="navigateTo('/hours')">MANAGE HOURS</button>
-      </div>
-
-      <div class="card">
-        <h2>MIGRATION</h2>
-        <p>Tools for migrating data from legacy systems to unified database.</p>
-        <img src="https://dev.farewellcafe.com/img/secret.png" alt="Migration" style="max-width: 100px; margin: 20px auto;">
-        <button class="home-link" onclick="navigateTo('/migration')">MIGRATION TOOLS</button>
-      </div>
-    </div>
-
-      <div class="card">
-        <h3>🔄 Data Migration</h3>
-        <p>Tools for migrating data from legacy systems and managing database operations.</p>
-        <button class="home-link" onclick="navigateTo('/migration')">MIGRATION TOOLS</button>
-      </div>
-    </div>
-    </div> <!-- Close admin-content-area -->
-  </div> <!-- Close admin-container -->
-
   <script>
     // Notification System
     function showNotification(message, type = 'info') {
@@ -591,64 +391,19 @@ export function generateDashboardHTML(): string {
       });
     }
     
-    // Show dashboard content
-    function showDashboard() {
-      const contentArea = document.getElementById('admin-content-area');
-      if (!contentArea) {
-        console.error('Content area not found');
-        return;
-      }
+    // Show correct panel and load content
+    function showPanel(panel) {
+      // Load the appropriate manager into the content area
+      if(panel === 'events') loadEventsManager();
+      if(panel === 'gallery') loadGalleryManager();
+      if(panel === 'blog') loadBlogManager();
       
-      contentArea.innerHTML = \`
-      <div class="dashboard-grid">
-        <div class="card">
-          <h2>EVENTS</h2>
-          <p>Manage upcoming events, flyers, and venue scheduling for both Farewell and Howdy.</p>
-          <img src="https://dev.farewellcafe.com/img/fwcal.png" alt="Calendar" style="max-width: 100px; margin: 20px auto;">
-          <button class="home-link" onclick="navigateTo('/events')">MANAGE EVENTS</button>
-        </div>
-
-        <div class="card">
-          <h2>GALLERY</h2>
-          <p>Upload and organize event flyers, photos, and gallery content.</p>
-          <img src="https://dev.farewellcafe.com/img/fwm.png" alt="Gallery" style="max-width: 100px; margin: 20px auto;">
-          <button class="home-link" onclick="navigateTo('/gallery')">MANAGE GALLERY</button>
-        </div>
-
-        <div class="card">
-          <h2>BLOG</h2>
-          <p>Create blog posts, manage newsletter content, and featured information.</p>
-          <img src="https://dev.farewellcafe.com/img/fm.png" alt="Blog" style="max-width: 100px; margin: 20px auto;">
-          <button class="home-link" onclick="navigateTo('/blog')">MANAGE BLOG</button>
-        </div>
-
-        <div class="card">
-          <h2>MENU</h2>
-          <p>Update food and drink menus for both venues, including pricing and availability.</p>
-          <img src="https://dev.farewellcafe.com/img/beere.png" alt="Menu" style="max-width: 100px; margin: 20px auto;">
-          <button class="home-link" onclick="navigateTo('/menu')">MANAGE MENU</button>
-        </div>
-
-        <div class="card">
-          <h2>HOURS</h2>
-          <p>Set business hours, special holiday hours, and venue-specific schedules.</p>
-          <img src="https://dev.farewellcafe.com/img/fm2.png" alt="Hours" style="max-width: 100px; margin: 20px auto;">
-          <button class="home-link" onclick="navigateTo('/hours')">MANAGE HOURS</button>
-        </div>
-
-        <div class="card">
-          <h2>MIGRATION</h2>
-          <p>Tools for migrating data from legacy systems to unified database.</p>
-          <img src="https://dev.farewellcafe.com/img/secret.png" alt="Migration" style="max-width: 100px; margin: 20px auto;">
-          <button class="home-link" onclick="navigateTo('/migration')">MIGRATION TOOLS</button>
-        </div>
-      </div>
-      \`;
-    }
-
-    // Function to go back to main dashboard
-    function backToDashboard() {
-      showDashboard();
+      // Update tab appearance
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      const tabs = document.querySelectorAll('.admin-tab');
+      if(panel === 'events') tabs[0].classList.add('active');
+      if(panel === 'gallery') tabs[1].classList.add('active');
+      if(panel === 'blog') tabs[2].classList.add('active');
     }
 
     // Check authentication on load
@@ -659,9 +414,7 @@ export function generateDashboardHTML(): string {
         return;
       }
       
-      // Show dashboard after authentication check
-      showDashboard();
-
+      // Auth check
       try {
         const response = await fetch('/api/auth/verify', {
           headers: { 'Authorization': \`Bearer \${token}\` }
@@ -672,9 +425,11 @@ export function generateDashboardHTML(): string {
           window.location.href = '/login';
         }
       } catch (error) {
-        console.error('Auth verification failed:', error);
         window.location.href = '/login';
       }
+      
+      // Load events manager by default
+      loadEventsManager();
     });
 
     function logout() {
@@ -704,232 +459,31 @@ export function generateDashboardHTML(): string {
           // Load gallery management interface
           loadGalleryManager();
           break;
-        case '/migration':
-          showNotification('Migration tools - Feature in development', 'info');
-          // TODO: Implement migration tools
-          break;
         default:
           showNotification(\`Navigation to \${path} not yet implemented\`, 'warning');
       }
     }
 
-    function loadBlogManager() {
-      // Replace only the content area, not the entire dashboard
-      const contentArea = document.getElementById('admin-content-area');
-      if (!contentArea) {
-        console.error('Content area not found');
-        return;
-      }
-      
-      contentArea.innerHTML = \`
-        <div class="blog-manager">
-          <h2>📝 Blog Management</h2>
-          <div class="blog-actions">
-            <button class="home-link" onclick="createNewPost()">Create New Post</button>
-            <button class="home-link" onclick="loadAllPosts()">View All Posts</button>
-            <button class="home-link" onclick="manageFeatured()">Manage Featured</button>
-            <button class="home-link" onclick="backToDashboard()">Back to Dashboard</button>
-          </div>
-          <div id="blog-content">
-            <p>Loading blog posts...</p>
-          </div>
-        </div>
-      \`;
-      loadAllPosts();
+    // Show correct panel and load content
+    function showPanel(panel) {
+      document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(panel + '-panel').classList.add('active');
+      document.querySelector(\`.admin-tab[onclick*="\${panel}"]\`).classList.add('active');
+      if(panel === 'events') loadEventsManager();
+      if(panel === 'gallery') loadGalleryManager();
+      if(panel === 'blog') loadBlogManager();
     }
-
-    async function loadAllPosts() {
-      const content = document.getElementById('blog-content');
-      try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/blog/admin/posts', {
-          headers: { 'Authorization': \`Bearer \${token}\` }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          const posts = data.data || [];
-          
-          content.innerHTML = \`
-            <h3>All Blog Posts (\${posts.length})</h3>
-            <div class="posts-list">
-              \${posts.map(post => \`
-                <div class="post-item">
-                  <h4>\${post.title}</h4>
-                  <p>\${post.content.substring(0, 100)}...</p>
-                  <small>ID: \${post.id} | Created: \${new Date(post.created_at).toLocaleDateString()}</small>
-                  <div class="post-actions">
-                    <button onclick="editPost(\${post.id})">Edit</button>
-                    <button onclick="deletePost(\${post.id})">Delete</button>
-                  </div>
-                </div>
-              \`).join('')}
-            </div>
-          \`;
-        } else {
-          content.innerHTML = '<p>Failed to load posts</p>';
-        }
-      } catch (error) {
-        content.innerHTML = '<p>Error loading posts</p>';
-        console.error(error);
-      }
-    }
-
-    function createNewPost() {
-      const content = document.getElementById('blog-content');
-      content.innerHTML = \`
-        <h3>Create New Blog Post</h3>
-        <form id="post-form">
-          <div>
-            <label>Title:</label>
-            <input type="text" id="post-title" required>
-          </div>
-          <div>
-            <label>Content:</label>
-            <textarea id="post-content" rows="10" required></textarea>
-          </div>
-          <div>
-            <label>Image Upload:</label>
-            <input type="file" id="post-image" accept="image/*">
-          </div>
-          <button type="submit">Create Post</button>
-          <button type="button" onclick="loadAllPosts()">Cancel</button>
-        </form>
-      \`;
-      
-      document.getElementById('post-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const title = document.getElementById('post-title').value;
-        const content = document.getElementById('post-content').value;
-        const imageFile = document.getElementById('post-image').files[0];
-        
-        const formData = new FormData();
-        formData.append('title', title);
-        formData.append('content', content);
-        if (imageFile) {
-          formData.append('image', imageFile);
-        }
-        
-        try {
-          const response = await fetch('/api/blog/posts', {
-            method: 'POST',
-            body: formData
-          });
-          
-          if (!response.ok) {
-            throw new Error("Error creating post: " + response.status);
-          }
-          
-          const result = await response.json();
-          showNotification('Blog post created successfully', 'success');
-          loadAllPosts();
-        } catch (error) {
-          console.error('Error creating blog post:', error);
-          showNotification('Failed to create blog post: ' + error.message, 'error');
-        }
-      });
-    }
-
-    function manageFeatured() {
-      showNotification('Featured content management - Coming soon', 'info');
-    }
-
-    function editPost(id) {
-      showNotification(\`Edit post \${id} - Feature in development\`, 'info');
-    }
-
-    function deletePost(id) {
-      if (confirm(\`Delete post \${id}?\`)) {
-        showNotification(\`Delete post ${id} - Feature in development\`, 'warning');
-      }
-    }
-
-    function backToDashboard() {
-      const contentArea = document.getElementById('admin-content-area');
-      if (!contentArea) {
-        window.location.reload();
-        return;
-      }
-      
-      // Reset content area to show the dashboard grid
-      contentArea.innerHTML = 
-        '<div class="dashboard-grid">' +
-          '<div class="card">' +
-            '<h2>EVENTS</h2>' +
-            '<p>Manage upcoming events, flyers, and venue scheduling for both Farewell and Howdy.</p>' +
-            '<img src="https://dev.farewellcafe.com/img/fwcal.png" alt="Calendar" style="max-width: 100px; margin: 20px auto;">' +
-            '<button class="home-link" onclick="navigateTo(\'/events\')">MANAGE EVENTS</button>' +
-          '</div>' +
-
-          '<div class="card">' +
-            '<h2>GALLERY</h2>' +
-            '<p>Upload and organize event flyers, photos, and gallery content.</p>' +
-            '<img src="https://dev.farewellcafe.com/img/fwm.png" alt="Gallery" style="max-width: 100px; margin: 20px auto;">' +
-            '<button class="home-link" onclick="navigateTo(\'/gallery\')">MANAGE GALLERY</button>' +
-          '</div>' +
-
-          '<div class="card">' +
-            '<h2>BLOG</h2>' +
-            '<p>Create blog posts, manage newsletter content, and featured information.</p>' +
-            '<img src="https://dev.farewellcafe.com/img/fm.png" alt="Blog" style="max-width: 100px; margin: 20px auto;">' +
-            '<button class="home-link" onclick="navigateTo(\'/blog\')">MANAGE BLOG</button>' +
-          '</div>' +
-
-          '<div class="card">' +
-            '<h2>MENU</h2>' +
-            '<p>Update food and drink menus for both venues, including pricing and availability.</p>' +
-            '<img src="https://dev.farewellcafe.com/img/beere.png" alt="Menu" style="max-width: 100px; margin: 20px auto;">' +
-            '<button class="home-link" onclick="navigateTo(\'/menu\')">MANAGE MENU</button>' +
-          '</div>' +
-
-          '<div class="card">' +
-            '<h2>HOURS</h2>' +
-            '<p>Set business hours, special holiday hours, and venue-specific schedules.</p>' +
-            '<img src="https://dev.farewellcafe.com/img/fm2.png" alt="Hours" style="max-width: 100px; margin: 20px auto;">' +
-            '<button class="home-link" onclick="navigateTo(\'/hours\')">MANAGE HOURS</button>' +
-          '</div>' +
-
-          '<div class="card">' +
-            '<h3>🔄 Data Migration</h3>' +
-            '<p>Tools for migrating data from legacy systems and managing database operations.</p>' +
-            '<button class="home-link" onclick="navigateTo(\'/migration\')">MIGRATION TOOLS</button>' +
-          '</div>' +
-        '</div>';
-    }
-
-    function refreshData() {
-      if (document.querySelector('.blog-manager')) {
-        loadAllPosts();
-      } else {
-        window.location.reload();
-      }
-    }
-
-    function viewLogs() {
-      showNotification('Logs viewer - Feature in development', 'info');
-    }
-
-    async function exportData() {
-      try {
-        const token = localStorage.getItem('authToken');
-        showNotification('Starting data export...', 'info');
-        // TODO: Implement actual export functionality
-        showNotification('Data export functionality - Coming soon', 'info');
-      } catch (error) {
-        showNotification('Export failed: ' + error.message, 'error');
-      }
-    }
-
+    
     // Load and display the events management interface
     async function loadEventsManager() {
       const contentArea = document.getElementById('admin-content-area');
       if (!contentArea) {
-        console.error('Content area not found');
+        console.error('Admin content area not found');
         return;
       }
       
       contentArea.innerHTML = \`
-        <div class="admin-panel active" id="events-panel">
           <h2>EVENTS MANAGEMENT</h2>
           <div class="venue-selector">
             <button class="home-link venue-button active" data-venue="farewell">FAREWELL EVENTS</button>
@@ -1028,7 +582,6 @@ export function generateDashboardHTML(): string {
               </div>
             </form>
           </div>
-        </div>
       \`;
       
       // Initialize event handlers
@@ -1099,9 +652,9 @@ export function generateDashboardHTML(): string {
             <div class="event-item" data-id="\${event.id}">
               <div class="event-item-content">
                 <div class="event-image">
-                  <img src="\${event.thumbnail_url || event.flyer_url || 'https://dev.farewellcafe.com/img/placeholder.png'}" 
+                  <img src="\${event.thumbnail_url || event.flyer_url || '/img/placeholder.png'}" 
                        alt="\${event.title}" 
-                       onerror="this.src='https://dev.farewellcafe.com/img/placeholder.png'">
+                       onerror="this.src='/img/placeholder.png'">
                 </div>
                 <div class="event-details">
                   <h3>\${event.title}</h3>
@@ -1357,12 +910,11 @@ export function generateDashboardHTML(): string {
     async function loadGalleryManager() {
       const contentArea = document.getElementById('admin-content-area');
       if (!contentArea) {
-        console.error('Content area not found');
+        console.error('Admin content area not found');
         return;
       }
       
       contentArea.innerHTML = \`
-        <div class="admin-panel active" id="gallery-panel">
           <h2>GALLERY MANAGEMENT</h2>
           
           <div class="venue-selector">
@@ -1387,7 +939,6 @@ export function generateDashboardHTML(): string {
           <div id="gallery-container">
             <div class="loading">Loading gallery images...</div>
           </div>
-        </div>
       \`;
       
       // Initialize gallery
@@ -1439,7 +990,7 @@ export function generateDashboardHTML(): string {
             <div class="gallery-item" data-id="\${image.id}">
               <div class="gallery-image">
                 <img src="\${image.url}" alt="\${image.title || 'Gallery image'}" 
-                     onerror="this.src='https://dev.farewellcafe.com/img/placeholder.png'">
+                     onerror="this.src='/img/placeholder.png'">
               </div>
               <div class="gallery-details">
                 <h4>\${image.title || 'Untitled'}</h4>
@@ -1607,8 +1158,162 @@ export function generateDashboardHTML(): string {
       }
     }
     
+    // Blog Manager
+    async function loadBlogManager() {
+      const contentArea = document.getElementById('admin-content-area');
+      if (!contentArea) {
+        console.error('Admin content area not found');
+        return;
+      }
+      contentArea.innerHTML = \`
+          <h2>BLOG MANAGEMENT</h2>
+          <div class="blog-controls">
+            <button class="home-link" id="create-blog-btn">CREATE NEW POST</button>
+          </div>
+          <div id="blog-container">
+            <div class="loading">Loading blog posts...</div>
+          </div>
+          <div id="blog-form-container" style="display: none;"></div>
+      \`;
+      loadAllBlogPosts();
+      document.getElementById('create-blog-btn').addEventListener('click', () => {
+        showBlogForm();
+      });
+    }
+    
+    // Load all blog posts
+    async function loadAllBlogPosts() {
+      const container = document.getElementById('blog-container');
+      container.innerHTML = '<div class="loading">Loading blog posts...</div>';
+      try {
+        const response = await fetch('/api/blog/admin/posts');
+        if (!response.ok) throw new Error(\`Failed to fetch posts: \${response.status}\`);
+        const data = await response.json();
+        const posts = data.data || [];
+        if (posts.length === 0) {
+          container.innerHTML = '<div class="empty-message">No blog posts found</div>';
+          return;
+        }
+        let html = '<div class="posts-list">';
+        posts.forEach(post => {
+          html += \`
+            <div class="post-item" data-id="\${post.id}">
+              <h4>\${post.title}</h4>
+              <p>\${post.content.substring(0, 100)}...</p>
+              <small>ID: \${post.id} | Created: \${new Date(post.created_at).toLocaleDateString()}</small>
+              <div class="post-actions">
+                <button class="edit-post-btn" data-id="\${post.id}">Edit</button>
+                <button class="delete-post-btn" data-id="\${post.id}">Delete</button>
+              </div>
+            </div>
+          \`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+        document.querySelectorAll('.edit-post-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const postId = btn.getAttribute('data-id');
+            showBlogForm(postId);
+          });
+        });
+        document.querySelectorAll('.delete-post-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const postId = btn.getAttribute('data-id');
+            deleteBlogPost(postId);
+          });
+        });
+      } catch (error) {
+        container.innerHTML = '<div class="error-message">Error loading posts: ' + error.message + '</div>';
+      }
+    }
+    
+    // Show blog post form (create/edit)
+    async function showBlogForm(postId = null) {
+      const formContainer = document.getElementById('blog-form-container');
+      const container = document.getElementById('blog-container');
+      formContainer.style.display = 'block';
+      container.style.display = 'none';
+      let post = { title: '', content: '', image_url: '' };
+      if (postId) {
+        try {
+          const response = await fetch(\`/api/blog/admin/posts/\${postId}\`);
+          if (!response.ok) throw new Error('Failed to fetch post');
+          post = await response.json();
+        } catch (error) {
+          showNotification('Error loading post: ' + error.message, 'error');
+          return;
+        }
+      }
+      formContainer.innerHTML = \`
+        <h3>\${postId ? 'Edit' : 'Create'} Blog Post</h3>
+        <form id="blog-post-form">
+          <input type="hidden" id="blog-id" value="\${postId || ''}">
+          <div class="form-group">
+            <label>Title:</label>
+            <input type="text" id="blog-title" value="\${post.title || ''}" required>
+          </div>
+          <div class="form-group">
+            <label>Content:</label>
+            <textarea id="blog-content" rows="10" required>\${post.content || ''}</textarea>
+          </div>
+          <div class="form-group">
+            <label>Image Upload:</label>
+            <input type="file" id="blog-image" accept="image/*">
+            \${post.image_url ? \`<img src="\${post.image_url}" style="max-width:120px;">\` : ''}
+          </div>
+          <button type="submit">\${postId ? 'Save Changes' : 'Create Post'}</button>
+          <button type="button" id="cancel-blog-btn">Cancel</button>
+        </form>
+      \`;
+      document.getElementById('cancel-blog-btn').addEventListener('click', () => {
+        formContainer.style.display = 'none';
+        container.style.display = 'block';
+      });
+      document.getElementById('blog-post-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveBlogPost(postId);
+      });
+    }
+    
+    // Save blog post (create or update)
+    async function saveBlogPost(postId) {
+      const form = document.getElementById('blog-post-form');
+      const formData = new FormData(form);
+      formData.append('title', document.getElementById('blog-title').value);
+      formData.append('content', document.getElementById('blog-content').value);
+      const imageInput = document.getElementById('blog-image');
+      if (imageInput.files.length > 0) {
+        formData.append('image', imageInput.files[0]);
+      }
+      try {
+        const url = postId ? \`/api/blog/admin/posts/\${postId}\` : '/api/blog/admin/posts';
+        const method = postId ? 'PUT' : 'POST';
+        const response = await fetch(url, { method, body: formData });
+        if (!response.ok) throw new Error('Failed to save post');
+        showNotification('Post saved successfully', 'success');
+        document.getElementById('blog-form-container').style.display = 'none';
+        document.getElementById('blog-container').style.display = 'block';
+        loadAllBlogPosts();
+      } catch (error) {
+        showNotification('Error saving post: ' + error.message, 'error');
+      }
+    }
+    
+    // Delete blog post
+    async function deleteBlogPost(postId) {
+      if (!confirm('Are you sure you want to delete this post?')) return;
+      try {
+        const response = await fetch(\`/api/blog/admin/posts/\${postId}\`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Failed to delete post');
+        showNotification('Post deleted successfully', 'success');
+        loadAllBlogPosts();
+      } catch (error) {
+        showNotification('Error deleting post: ' + error.message, 'error');
+      }
+    }
+    
     // Initialize the dashboard
-    displayDashboard();
+    showDashboard();
   </script>
 </body>
 </html>`;

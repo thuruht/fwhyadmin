@@ -76,16 +76,41 @@ export default {
 
       // Admin dashboard (HTML)
       if (path === '/' || path === '/dashboard' || path === '/admin') {
-        return new Response(generateDashboardHTML(), {
+        return handleCORS(new Response(generateDashboardHTML(), {
           headers: { 'Content-Type': 'text/html' }
-        });
+        }));
       }
 
       // Login page
       if (path === '/login') {
-        return new Response(generateLoginHTML(), {
+        return handleCORS(new Response(generateLoginHTML(), {
           headers: { 'Content-Type': 'text/html' }
-        });
+        }));
+      }
+
+      // Static assets (CSS, fonts, images) - serve from main frontend without auth
+      if (path.startsWith('/css/') || path.startsWith('/fnt/') || path.startsWith('/img/')) {
+        try {
+          const frontendUrl = `https://dev.farewellcafe.com${path}`;
+          const response = await fetch(frontendUrl);
+          if (response.ok) {
+            const newResponse = new Response(response.body, {
+              status: response.status,
+              statusText: response.statusText,
+              headers: {
+                ...Object.fromEntries(response.headers),
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+              },
+            });
+            return handleCORS(newResponse);
+          }
+        } catch (error) {
+          console.error('Error proxying static asset:', error);
+        }
+        // Fallback 404 for static assets
+        return handleCORS(new Response('Asset not found', { status: 404 }));
       }
 
       // Admin endpoints (auth required)
@@ -213,37 +238,149 @@ function generateLoginHTML(): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Login - Farewell/Howdy</title>
+  <title>admin login</title>
+  <link rel="stylesheet" href="/css/ccssss.css">
   <style>
-    body { font-family: Arial, sans-serif; max-width: 400px; margin: 100px auto; padding: 20px; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; }
-    input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
-    button { width: 100%; padding: 12px; background: #007cba; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button:hover { background: #005a87; }
-    .error { color: red; margin-top: 10px; }
+    body {
+      background: var(--header-bg);
+      font-family: var(--font-main);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .admin-header {
+      width: 100%;
+      background: var(--primary-bg-color) url('/img/bg4.png') center/cover no-repeat;
+      background-attachment: fixed;
+      border-bottom: 1px solid var(--nav-border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 212px;
+    }
+    .admin-header h1 {
+      font-family: var(--font-db);
+      font-size: clamp(2.5rem, 8vw, 4em);
+      color: var(--secondary-bg-color);
+      -webkit-text-stroke: 1px black;
+      text-shadow: -1px -1px 0 #000,
+           1px -1px 0 #000,
+          -1px  1px 0 #000,
+           1px  1px 0 #000,
+          -8px 8px 0px var(--nav-border-color);
+      margin: 0;
+    }
+    .login-container {
+      background: var(--card-bg-color);
+      border: 2px solid var(--nav-border-color);
+      border-radius: 8px;
+      box-shadow: -5px 5px 0px rgba(0,0,0,0.08);
+      padding: 2.5rem 2rem 2rem 2rem;
+      margin: 2rem auto 0 auto;
+      max-width: 400px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .login-title {
+      font-family: var(--font-db);
+      font-size: 2.2rem;
+      color: var(--accent-color);
+      margin-bottom: 1.5rem;
+      text-shadow: 2px 2px 4px var(--header-text-shadow);
+    }
+    .form-group {
+      width: 100%;
+      margin-bottom: 1.2rem;
+      text-align: left;
+    }
+    label {
+      font-family: var(--font-main);
+      color: var(--accent-color);
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+    input {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1.5px solid var(--nav-border-color);
+      border-radius: 4px;
+      font-family: var(--font-hnm11);
+      font-size: 1rem;
+      background: rgba(255,255,255,0.95);
+      color: var(--text-color);
+      transition: border 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--secondary-bg-color);
+      box-shadow: -3px 3px 0px rgba(0,0,0,0.08);
+    }
+    .login-btn {
+      width: 100%;
+      padding: 1rem 2rem;
+      background: var(--button-bg-color);
+      color: var(--button-text-color);
+      font-family: var(--font-main);
+      font-weight: bold;
+      border-radius: 4px;
+      border: 2px solid var(--text-color);
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+      cursor: pointer;
+      transition: all var(--transition-speed) ease;
+    }
+    .login-btn:hover {
+      background: var(--accent-color);
+      color: white;
+      transform: translateY(-2px);
+    }
+    .error {
+      color: var(--redd);
+      margin-top: 0.7rem;
+      font-size: 1rem;
+      min-height: 1.2em;
+      text-align: center;
+      font-family: var(--font-main);
+    }
+    @media (max-width: 600px) {
+      .login-container { padding: 1.2rem 0.5rem; }
+      .admin-header { min-height: 120px; padding: 0.5rem; }
+      .admin-header h1 { font-size: 2rem; }
+    }
   </style>
 </head>
-<body>
-  <h2>Admin Login</h2>
-  <form id="loginForm">
-    <div class="form-group">
-      <label for="username">Username:</label>
-      <input type="text" id="username" name="username" required>
+<body data-state="farewell">
+  <div class="admin-header">
+    <h1>administration!</h1>
+  </div>
+  <main>
+    <div class="login-container">
+      <div class="login-title">log in</div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">user:</label>
+          <input type="text" id="username" name="username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="password">pass:</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="login-btn">let me in</button>
+        <div id="error" class="error"></div>
+      </form>
     </div>
-    <div class="form-group">
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" required>
-    </div>
-    <button type="submit">Login</button>
-    <div id="error" class="error"></div>
-  </form>
-
+  </main>
   <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
-      
       try {
         const response = await fetch('/api/auth/login', {
           method: 'POST',
@@ -253,17 +390,15 @@ function generateLoginHTML(): string {
             password: formData.get('password')
           })
         });
-        
         const result = await response.json();
-        
         if (result.success) {
           localStorage.setItem('authToken', result.data.token);
-          window.location.href = '/dashboard';
+          window.location.href = '/';
         } else {
-          document.getElementById('error').textContent = result.error || 'Login failed';
+          document.getElementById('error').textContent = result.error || 'nope.';
         }
-      } catch (error) {
-        document.getElementById('error').textContent = 'Login request failed';
+      } catch (err) {
+        document.getElementById('error').textContent = 'try again later.';
       }
     });
   </script>

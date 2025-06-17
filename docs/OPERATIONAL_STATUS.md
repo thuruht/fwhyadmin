@@ -1,4 +1,4 @@
-# Operational Status Documentation
+# OPERATIONAL_STATUS
 
 This document provides an accurate assessment of which features are actually operational in the Farewell/Howdy admin system as of June 16, 2025.
 

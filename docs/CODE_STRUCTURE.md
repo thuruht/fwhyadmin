@@ -1,6 +1,36 @@
-# Code Structure Documentation
+# CODE_STRUCTURE
 
-## Last Updated: June 16, 2025
+## Last Updated: June 17, 2025
+
+---
+
+## Quick Reference: File Map & Triage
+
+### Essential
+- `src/index.ts` — Main entry point for admin worker
+- `src/dashboard/admin-dashboard.ts` — Admin dashboard HTML generator
+- `src/handlers/` — API route handlers (events, blog, gallery, menu, hours, migration)
+- `src/middleware/` — Auth, CORS, security middleware
+- `src/types/env.ts` — Type definitions
+- `src/utils/cors.ts` — CORS utility
+- `wrangler.jsonc` — Cloudflare Worker config (modern)
+- `package.json`, `tsconfig.json`
+
+### Migration/Utility
+- `blog_export.sql`, `blog_posts_extracted.json`, `blog_posts_updated.json`
+- `extract_blog_posts.js`, `upload_to_kv.js`, `clean_mailchimp_links.js`, `fix_mailchimp_links.js`, `update_blog_posts.js`
+- `migrate-blog*.js`, `migrate-data.js`, `full-migration.js`, `list-blog-images.js`, `temp_post_*.json`
+
+### Legacy/Backup/Unused
+- All files in `/backup/`, `/backup_legacy/`, and subfolders
+- Any `.toml` files (should not be used)
+- Duplicate dashboard files (e.g., `admin-dashboard.tsx` if not referenced)
+- Any `.js` handler with a `.ts` equivalent
+
+### Documentation
+- `README.md`, `CURRENT_STATUS.md`, `OPERATIONAL_STATUS.md`, `PROJECT_STATUS.md`, `TODO_CLEANUP.md`, `LOGIN_PAGE_STYLING.md`, `ARCHITECTURE.md`, `UNIFIED_ADMIN_BACKEND_PLAN.md`, `UNIFIED_ARCHITECTURE_PLAN.md`
+
+---
 
 This document provides a detailed overview of the codebase structure, highlighting important files, their purposes, and relationships.
 

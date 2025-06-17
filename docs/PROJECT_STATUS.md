@@ -1,4 +1,4 @@
-# Farewell/Howdy Admin Project Status
+# PROJECT_STATUS
 
 ## Last Updated: June 16, 2025
 

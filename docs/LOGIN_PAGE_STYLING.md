@@ -1,4 +1,4 @@
-# Login Page Styling Requirements
+# LOGIN_PAGE_STYLING
 
 The login page for the admin system needs to be styled to match the overall site theme and 404 page style.
 

@@ -1,3 +1,5 @@
+# ARCHITECTURE
+
 # Farewell/Howdy Unified System Architecture
 
 ## Overview

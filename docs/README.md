@@ -1,3 +1,7 @@
+# README
+
+// ...existing code...
+
 # Farewell/Howdy Unified Admin Backend
 
 This is the unified admin backend for the Farewell and Howdy venues, built as a Cloudflare Worker with comprehensive management capabilities.
@@ -8,7 +12,6 @@ This is the unified admin backend for the Farewell and Howdy venues, built as a 
 - **Event Management**: Create, edit, delete events for both venues
 - **Flyer Management**: Upload, manage, and organize flyers with thumbnails
 - **Unified Calendar**: Merged calendar system for both venues (PRIORITY ITEM)
-- **Venue-Specific Defaults**: Auto-populate venue-specific fields based on todo requirements
 - **Admin Dashboard**: Comprehensive web interface for management
 - **Session-Based Authentication**: Secure login system with session management
 - **Newsletter Integration**: Kit (ConvertKit) powered newsletter system

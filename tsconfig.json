@@ -28,7 +28,6 @@
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
     "useDefineForClassFields": true,
-    "jsx": "react",
     "types": ["@cloudflare/workers-types", "node"]
   },
   "include": [
