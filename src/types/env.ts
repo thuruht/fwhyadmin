@@ -29,6 +29,10 @@ export interface Env {
   ENVIRONMENT: string;
   R2_PUBLIC_URL_PREFIX: string;
   
+  // Auth Secrets
+  ADMIN_USERNAME: string;
+  ADMIN_PASSWORD: string;
+  
   // Secrets (defined via wrangler secret put)
   ADMIN_PASSWORD?: string;
   UPLOAD_PASSWORD?: string;

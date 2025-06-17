@@ -2,6 +2,7 @@
 import { Env, ApiResponse } from './types/env';
 import { handleCORS } from './utils/cors';
 import { authenticate } from './middleware/auth';
+import { logSuspiciousRequests } from './middleware/security';
 import { handleAuth } from './handlers/auth';
 import { handleEvents } from './handlers/events';
 import { handleBlog } from './handlers/blog';
@@ -27,6 +28,9 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
+
+    // Log suspicious requests (security monitoring)
+    ctx.waitUntil(logSuspiciousRequests(request, env));
 
     // Handle CORS preflight
     if (method === 'OPTIONS') {
@@ -129,8 +133,8 @@ export default {
       return handleCORS(
         Response.json({ 
           success: false,
-          error: 'Not Found', 
-          requestedPath: path 
+          error: 'Not Found',
+          message: `Path not found: ${path}`
         } satisfies ApiResponse, { status: 404 })
       );
 

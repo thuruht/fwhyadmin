@@ -1,6 +1,17 @@
 // src/middleware/auth.ts
 import { Env, SessionData } from '../types/env';
 
+// Track login attempts for rate limiting
+interface LoginAttempt {
+  count: number;
+  firstAttempt: number;
+  lastAttempt: number;
+}
+
+const loginAttempts = new Map<string, LoginAttempt>();
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
 export interface AuthResult {
   success: boolean;
   user?: SessionData;
@@ -76,13 +87,44 @@ export async function createSession(username: string, env: Env): Promise<string>
  * Validate admin credentials
  */
 export async function validateCredentials(username: string, password: string, env: Env): Promise<boolean> {
-  // For now, use a simple hardcoded check
-  // In production, this should check against a secure user database
-  const validUsers = {
-    'admin': env.ADMIN_PASSWORD || 'farewell2025',
-    'farewell': env.ADMIN_PASSWORD || 'farewell2025',
-    'howdy': env.ADMIN_PASSWORD || 'howdy2025'
-  };
-
-  return validUsers[username as keyof typeof validUsers] === password;
+  // Check rate limiting
+  const clientIP = "secure"; // In a real implementation, get the client IP
+  const now = Date.now();
+  
+  // Get current attempts for this IP
+  let attempt = loginAttempts.get(clientIP);
+  
+  // If we have a record and it's within our window
+  if (attempt && (now - attempt.firstAttempt) < WINDOW_MS) {
+    // Too many recent attempts
+    if (attempt.count >= MAX_ATTEMPTS) {
+      console.warn(`Rate limit exceeded for login: ${clientIP}`);
+      return false;
+    }
+    
+    // Update attempts
+    attempt.count += 1;
+    attempt.lastAttempt = now;
+    loginAttempts.set(clientIP, attempt);
+  } else {
+    // First attempt or outside window, reset
+    loginAttempts.set(clientIP, {
+      count: 1,
+      firstAttempt: now,
+      lastAttempt: now
+    });
+  }
+  
+  // Use secrets for secure authentication
+  const adminUsername = env.ADMIN_USERNAME || 'admin';
+  const adminPassword = env.ADMIN_PASSWORD || 'farewell2025';
+  
+  const isValid = username === adminUsername && password === adminPassword;
+  
+  // If successful, clear rate limit record
+  if (isValid) {
+    loginAttempts.delete(clientIP);
+  }
+  
+  return isValid;
 }

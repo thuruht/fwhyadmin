@@ -30,6 +30,7 @@
     "wrangler": "^3.0.0"
   },
   "dependencies": {
+    "hono": "^4.7.11",
     "linkedom": "^0.16.0",
     "uuid": "^11.1.0"
   }
