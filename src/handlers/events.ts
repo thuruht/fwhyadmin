@@ -387,3 +387,95 @@ async function deleteEvent(eventId: string, env: Env): Promise<Response> {
     } satisfies ApiResponse, { status: 500 });
   }
 }
+
+// Import legacy events from fygw0.kcmo.xyz (manual or scheduled)
+export async function importLegacyEvents(env: Env): Promise<{ imported: number, error?: string }> {
+  const venues = ['farewell', 'howdy'];
+  let imported = 0;
+  try {
+    for (const venue of venues) {
+      // Fetch upcoming
+      const listRes = await fetch(`https://fygw0.kcmo.xyz/list/${venue}`);
+      if (listRes.ok) {
+        const events = await listRes.json();
+        for (const event of events) {
+          // Normalize and store in EVENTS_KV
+          const id = event.id || crypto.randomUUID();
+          const normalized = {
+            id,
+            title: event.title,
+            date: event.date,
+            time: event.time,
+            venue,
+            description: event.description || '',
+            suggested_price: event.suggested_price || event.suggestedPrice || '',
+            ticket_url: event.ticket_url || event.ticketLink || '',
+            age_restriction: event.age_restriction || event.ageRestriction || '',
+            flyer_url: event.flyer_url || event.flyerUrl || event.imageUrl || '',
+            thumbnail_url: event.thumbnail_url || event.thumbnailUrl || event.flyer_url || event.flyerUrl || event.imageUrl || '',
+            status: event.status || 'active',
+            featured: !!event.featured,
+            slideshow_order: event.slideshow_order || 0,
+            created_at: event.created_at || new Date().toISOString(),
+            updated_at: event.updated_at || new Date().toISOString(),
+            created_by: 'import',
+            last_modified_by: 'import'
+          };
+          await env.EVENTS_KV.put(`event_${id}`, JSON.stringify(normalized));
+          imported++;
+        }
+      }
+      // Fetch past/archives
+      const archRes = await fetch(`https://fygw0.kcmo.xyz/archives?type=${venue}`);
+      if (archRes.ok) {
+        const events = await archRes.json();
+        for (const event of events) {
+          const id = event.id || crypto.randomUUID();
+          const normalized = {
+            id,
+            title: event.title,
+            date: event.date,
+            time: event.time,
+            venue,
+            description: event.description || '',
+            suggested_price: event.suggested_price || event.suggestedPrice || '',
+            ticket_url: event.ticket_url || event.ticketLink || '',
+            age_restriction: event.age_restriction || event.ageRestriction || '',
+            flyer_url: event.flyer_url || event.flyerUrl || event.imageUrl || '',
+            thumbnail_url: event.thumbnail_url || event.thumbnailUrl || event.flyer_url || event.flyerUrl || event.imageUrl || '',
+            status: event.status || 'archived',
+            featured: !!event.featured,
+            slideshow_order: event.slideshow_order || 0,
+            created_at: event.created_at || new Date().toISOString(),
+            updated_at: event.updated_at || new Date().toISOString(),
+            created_by: 'import',
+            last_modified_by: 'import'
+          };
+          await env.EVENTS_KV.put(`event_${id}`, JSON.stringify(normalized));
+          imported++;
+        }
+      }
+    }
+    return { imported };
+  } catch (e) {
+    return { imported, error: (e as Error).message };
+  }
+}
+
+// Add API endpoint for manual import trigger
+export async function handleImportLegacy(request: Request, env: Env): Promise<Response> {
+  const result = await importLegacyEvents(env);
+  if (result.error) {
+    return Response.json({ success: false, error: result.error, imported: result.imported });
+  }
+  return Response.json({ success: true, imported: result.imported });
+}
+
+// Scheduled import: run once per week
+export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+  // Only run on Mondays at 3am UTC (or adjust as needed)
+  const now = new Date();
+  if (now.getUTCDay() === 1 && now.getUTCHours() === 3) {
+    await importLegacyEvents(env);
+  }
+}

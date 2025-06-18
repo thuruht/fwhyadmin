@@ -11,6 +11,7 @@ import { handleMenu } from './handlers/menu';
 import { handleHours } from './handlers/hours';
 import { handleMigration } from './handlers/migration';
 import { generateUnifiedDashboardHTML } from './dashboard/unified-admin-dashboard';
+import { handleImportLegacy } from './handlers/events';
 
 /**
  * Farewell/Howdy Unified Admin Backend
@@ -169,6 +170,11 @@ export default {
       if (path.startsWith('/api/blog/admin/posts')) {
         // Map to /api/blog with admin logic
         return handleCORS(await handleBlog(request, env, 'admin'));
+      }
+
+      // Import legacy events (manual trigger)
+      if (path.startsWith('/api/events/import-legacy') && method === 'POST') {
+        return handleCORS(await handleImportLegacy(request, env));
       }
 
       // Default 404

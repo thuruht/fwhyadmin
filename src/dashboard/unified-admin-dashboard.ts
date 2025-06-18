@@ -228,6 +228,30 @@ export function generateUnifiedDashboardHTML(): string {
       loadEvents();
     }
 
+    // Add button to trigger legacy import
+    const importBtn = document.createElement('button');
+    importBtn.textContent = 'Import Legacy Events';
+    importBtn.className = 'btn btn-warning';
+    importBtn.onclick = async () => {
+      importBtn.disabled = true;
+      importBtn.textContent = 'Importing...';
+      try {
+        const res = await fetch('/api/events/import-legacy', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          alert(\`Imported \${data.imported} events from legacy source!\`);
+          loadEvents();
+        } else {
+          alert('Import failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Import error: ' + e.message);
+      }
+      importBtn.disabled = false;
+      importBtn.textContent = 'Import Legacy Events';
+    };
+    document.getElementById('event-management').prepend(importBtn);
+
     // Blog Management CRUD with Quill and custom image upload
     let quill;
     function initQuillBlogEditor(container, initialContent = '') {

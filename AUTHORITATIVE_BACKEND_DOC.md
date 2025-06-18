@@ -12,15 +12,18 @@ This is the authoritative documentation for the Farewell/Howdy unified admin bac
 
 - Unified CRUD for events and blog posts (legacy + new)
 - Quill editor with custom image upload for blog
-- Robust API: `/events`, `/blog/posts`, etc.
+- Robust API: `/events`, `/blog/posts`, `/menu`, etc.
 - All config in `wrangler.jsonc` (no TOML)
-- Modern, normalized event and blog data
-- Admin dashboard: full CRUD, state switching, error handling
+- Modern, normalized event, blog, and menu data
+- Admin dashboard: full CRUD, state switching, error handling, and professional sidebar/card layout
 - Logout: clears session/localStorage and reloads
+- Import legacy events/flyers from https://fygw0.kcmo.xyz (auto weekly + manual button)
+- Drinks menu and other content can be edited via dashboard (see Menu section)
 
 ### Event Data
 
 - Merges legacy (`events:all`, `events:farewell`, `events:howdy` in GALLERY_KV), new (`event_*` in EVENTS_KV), and all events from `EVENTS_HOWDY` and `EVENTS_FAREWELL` (from legacy worker)
+- Imports and normalizes all real/old events/flyers from https://fygw0.kcmo.xyz weekly and on demand
 - Normalizes fields: id, title, venue, date, time, description, age_restriction, suggested_price, ticket_url, flyer_url, thumbnail_url, status, featured, slideshow_order, created_at, updated_at, created_by, last_modified_by
 - `/api/events/list` returns `{ events, total, venue, limit, thumbnails }` (all merged)
 - All old and new flyers and events are visible and editable in the admin dashboard
@@ -30,6 +33,11 @@ This is the authoritative documentation for the Farewell/Howdy unified admin bac
 ### Blog Data
 
 - CRUD for blog posts, Quill content, image upload to R2
+
+### Menu Data
+
+- CRUD for drinks menu and other menu items (editable via dashboard)
+- Menu data served via `/api/menu` for frontend display
 
 ### Auth/Logout
 
@@ -120,6 +128,13 @@ This is the authoritative documentation for the Farewell/Howdy unified admin bac
 - `DELETE /api/blog/posts/:id` — Delete post
 - `POST /api/blog/posts/upload-image` — Upload blog image
 
+### Menu
+
+- `GET /api/menu` — List menu items
+- `POST /api/menu` — Create menu item
+- `PUT /api/menu/:id` — Update menu item
+- `DELETE /api/menu/:id` — Delete menu item
+
 ---
 
 ## Admin Dashboard
@@ -128,6 +143,8 @@ This is the authoritative documentation for the Farewell/Howdy unified admin bac
 - Quill editor for blog/news (custom image upload, no base64)
 - All event fields editable, legacy events included
 - Flyer upload uses R2/KV and sets correct URLs
+- Professional sidebar/card layout
+- Editable menu and content sections
 
 ---
 
