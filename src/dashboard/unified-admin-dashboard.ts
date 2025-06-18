@@ -22,25 +22,119 @@ export function generateUnifiedDashboardHTML(): string {
       --text-primary: #1e293b;
       --text-secondary: #64748b;
       --border-color: #e2e8f0;
+      --farewell-color: #e03e00;
+      --howdy-color: #2563eb;
     }
-    /* ...existing CSS from both dashboards merged... */
+    body {
+      background: var(--bg-color);
+      font-family: 'Inter', Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text-primary);
+    }
+    .dashboard-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 220px;
+      background: linear-gradient(180deg, var(--farewell-color) 0%, var(--howdy-color) 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 1rem 1rem;
+      box-shadow: 2px 0 10px #0002;
+    }
+    .sidebar h1 {
+      font-family: var(--font-hnm11, 'Inter');
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+    .sidebar nav {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .sidebar nav button {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+      text-align: left;
+    }
+    .sidebar nav button.active, .sidebar nav button:hover {
+      background: #fff2;
+    }
+    .sidebar .logout-btn {
+      margin-top: auto;
+      background: var(--error-color);
+      color: #fff;
+      width: 100%;
+      font-weight: bold;
+    }
+    .main-content {
+      flex: 1;
+      padding: 2rem 3vw;
+      background: var(--bg-color);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: 0 2px 12px #0001;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+      font-family: var(--font-hnm11, 'Inter');
+    }
+    @media (max-width: 900px) {
+      .dashboard-layout { flex-direction: column; }
+      .sidebar { width: 100%; flex-direction: row; justify-content: space-between; padding: 1rem; }
+      .sidebar nav { flex-direction: row; gap: 0.5rem; }
+      .main-content { padding: 1rem; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>Farewell/Howdy Admin</h1>
-      <div class="user-info">
-        <span>Welcome, Admin</span>
-        <button class="btn btn-secondary" onclick="logout()">Logout</button>
-      </div>
-    </div>
-    <div class="quick-stats" id="quick-stats"></div>
-    <div class="dashboard-grid">
-      <div class="section" id="quick-actions"></div>
-      <div class="section" id="event-management"></div>
-    </div>
-    <div class="section" id="tabs-section"></div>
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <h1>Farewell<br>& Howdy<br>Admin</h1>
+      <nav>
+        <button id="nav-stats" class="active">Quick Stats</button>
+        <button id="nav-events">Events</button>
+        <button id="nav-blog">Blog</button>
+      </nav>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </aside>
+    <main class="main-content">
+      <section id="section-stats" class="card">
+        <div class="section-title">Quick Stats</div>
+        <div id="quick-stats"></div>
+      </section>
+      <section id="section-events" class="card" style="display:none;">
+        <div class="section-title">Event Management</div>
+        <div id="event-management"></div>
+      </section>
+      <section id="section-blog" class="card" style="display:none;">
+        <div class="section-title">Blog Management</div>
+        <div id="tabs-section"></div>
+      </section>
+    </main>
   </div>
   <div id="modals"></div>
   <script>
@@ -50,7 +144,8 @@ export function generateUnifiedDashboardHTML(): string {
     function logout() {
       // Clear any tokens or session info (customize as needed)
       localStorage.clear();
-      sessionStorage.clear();n      document.cookie = '';
+      sessionStorage.clear();
+      document.cookie = '';
       window.location.reload();
     }
     // Utility: Fetch wrapper
@@ -236,6 +331,25 @@ export function generateUnifiedDashboardHTML(): string {
       if (!confirm('Delete this post?')) return;
       await fetch(\`\${API_BASE}/blog/posts/\${id}\`, { method: 'DELETE' });
       loadBlog();
+    }
+
+    // Navigation logic
+    document.getElementById('nav-stats').onclick = function() {
+      setActiveSection('stats');
+    };
+    document.getElementById('nav-events').onclick = function() {
+      setActiveSection('events');
+    };
+    document.getElementById('nav-blog').onclick = function() {
+      setActiveSection('blog');
+    };
+    function setActiveSection(section) {
+      document.getElementById('section-stats').style.display = section === 'stats' ? '' : 'none';
+      document.getElementById('section-events').style.display = section === 'events' ? '' : 'none';
+      document.getElementById('section-blog').style.display = section === 'blog' ? '' : 'none';
+      document.getElementById('nav-stats').classList.toggle('active', section === 'stats');
+      document.getElementById('nav-events').classList.toggle('active', section === 'events');
+      document.getElementById('nav-blog').classList.toggle('active', section === 'blog');
     }
 
     // Initial load

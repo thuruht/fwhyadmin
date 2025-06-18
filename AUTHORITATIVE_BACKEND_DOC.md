@@ -6,7 +6,9 @@ This is the authoritative documentation for the Farewell/Howdy unified admin bac
 
 ---
 
-## Features
+## Unified Admin Backend (fwhyadmin)
+
+### Features
 
 - Unified CRUD for events and blog posts (legacy + new)
 - Quill editor with custom image upload for blog
@@ -15,6 +17,35 @@ This is the authoritative documentation for the Farewell/Howdy unified admin bac
 - Modern, normalized event and blog data
 - Admin dashboard: full CRUD, state switching, error handling
 - Logout: clears session/localStorage and reloads
+
+### Event Data
+
+- Merges legacy (`events:all`, `events:farewell`, `events:howdy` in GALLERY_KV), new (`event_*` in EVENTS_KV), and all events from `EVENTS_HOWDY` and `EVENTS_FAREWELL` (from legacy worker)
+- Normalizes fields: id, title, venue, date, time, description, age_restriction, suggested_price, ticket_url, flyer_url, thumbnail_url, status, featured, slideshow_order, created_at, updated_at, created_by, last_modified_by
+- `/api/events/list` returns `{ events, total, venue, limit, thumbnails }` (all merged)
+- All old and new flyers and events are visible and editable in the admin dashboard
+- Flyer upload saves to R2 and sets flyer_url/thumbnail_url for frontend display
+- Fully compatible with new frontend and legacy data
+
+### Blog Data
+
+- CRUD for blog posts, Quill content, image upload to R2
+
+### Auth/Logout
+
+- Admin session is frontend-only (localStorage/sessionStorage/cookie)
+- Logout button clears all and reloads
+
+### Interoperability
+
+- Backend merges all event/flyer data from legacy and new sources
+- Fully compatible with new frontend and preserves all old site data
+- No dependency on old endpoints, but can import from them if needed
+
+### Deployment
+
+- All config in `wrangler.jsonc` (modern compatibility date)
+- Deploy with `npx wrangler deploy` from project root
 
 ---
 
@@ -165,3 +196,7 @@ For questions, see this file or contact the project maintainer.
 ---
 
 *This is the only authoritative documentation. All other docs can be archived.*
+
+---
+
+_Last updated: 2025-06-17_
