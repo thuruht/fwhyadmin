@@ -10,7 +10,7 @@ import { handleGallery } from './handlers/gallery';
 import { handleMenu } from './handlers/menu';
 import { handleHours } from './handlers/hours';
 import { handleMigration } from './handlers/migration';
-import { generateDashboardHTML } from './dashboard/admin-dashboard';
+import { generateUnifiedDashboardHTML } from './dashboard/unified-admin-dashboard';
 
 /**
  * Farewell/Howdy Unified Admin Backend
@@ -76,7 +76,7 @@ export default {
 
       // Admin dashboard (HTML)
       if (path === '/' || path === '/dashboard' || path === '/admin') {
-        return handleCORS(new Response(generateDashboardHTML(), {
+        return handleCORS(new Response(generateUnifiedDashboardHTML(), {
           headers: { 'Content-Type': 'text/html' }
         }));
       }
@@ -152,6 +152,23 @@ export default {
       // Migration endpoint (admin auth required)
       if (path.startsWith('/api/migrate')) {
         return handleCORS(await handleMigration(request, env));
+      }
+
+      // Alias /api/flyers to /api/gallery/list for dashboard compatibility
+      if (path.startsWith('/api/flyers')) {
+        // Map /api/flyers to /api/gallery/list
+        const urlObj = new URL(request.url);
+        const venue = urlObj.searchParams.get('venue') || 'all';
+        const galleryListUrl = new URL('/api/gallery/list', request.url);
+        galleryListUrl.searchParams.set('venue', venue);
+        // Proxy the request to the gallery handler
+        return handleCORS(await handleGallery(new Request(galleryListUrl.toString(), request), env));
+      }
+
+      // Blog admin CRUD compatibility: /api/blog/admin/posts
+      if (path.startsWith('/api/blog/admin/posts')) {
+        // Map to /api/blog with admin logic
+        return handleCORS(await handleBlog(request, env, 'admin'));
       }
 
       // Default 404

@@ -28,14 +28,12 @@ export async function handleEvents(request: Request, env: Env, mode: 'list' | 's
   }
 }
 
-// Helper function to get all events from KV storage
+// Helper function to get all events from both new and legacy KV
 async function getAllEvents(env: Env): Promise<Event[]> {
+  let events: Event[] = [];
   try {
-    // List all keys that start with 'event_'
+    // New events (current KV)
     const listResponse = await env.EVENTS_KV.list({ prefix: 'event_' });
-    const events: Event[] = [];
-    
-    // Fetch each event
     for (const key of listResponse.keys) {
       const eventData = await env.EVENTS_KV.get(key.name);
       if (eventData) {
@@ -47,14 +45,49 @@ async function getAllEvents(env: Env): Promise<Event[]> {
         }
       }
     }
-    
+    // Legacy events (old unified and per-venue keys)
+    const legacyKeys = ['events:all', 'events:farewell', 'events:howdy'];
+    for (const legacyKey of legacyKeys) {
+      const legacyData = await env.GALLERY_KV.get(legacyKey);
+      if (legacyData) {
+        try {
+          const legacyEvents = JSON.parse(legacyData);
+          for (const legacyEvent of legacyEvents) {
+            // Normalize legacy event fields to match new Event type
+            events.push({
+              id: legacyEvent.id,
+              title: legacyEvent.title,
+              venue: legacyEvent.venue === 'farewell' || legacyEvent.venue === 'howdy' ? legacyEvent.venue : 'farewell',
+              date: legacyEvent.date,
+              time: legacyEvent.time,
+              description: legacyEvent.description,
+              age_restriction: legacyEvent.age_restriction || legacyEvent.ageRestriction,
+              suggested_price: legacyEvent.price || legacyEvent.suggested_price,
+              ticket_url: legacyEvent.ticket_url,
+              flyer_url: legacyEvent.flyerUrl || legacyEvent.flyer_url,
+              thumbnail_url: legacyEvent.thumbnailUrl || legacyEvent.thumbnail_url,
+              status: legacyEvent.status === 'cancelled' || legacyEvent.status === 'postponed' ? legacyEvent.status : 'active',
+              featured: !!legacyEvent.featured,
+              slideshow_order: legacyEvent.slideshow_order,
+              created_at: legacyEvent.created || legacyEvent.created_at || new Date().toISOString(),
+              updated_at: legacyEvent.updated || legacyEvent.updated_at || new Date().toISOString(),
+              created_by: legacyEvent.created_by || '',
+              last_modified_by: legacyEvent.last_modified_by || ''
+            } as Event);
+          }
+        } catch (e) {
+          console.error(`Error parsing legacy events from ${legacyKey}:`, e);
+        }
+      }
+    }
     return events;
   } catch (error) {
     console.error('Error fetching events from KV:', error);
-    return [];
+    return events;
   }
 }
 
+// Fix venue filtering to only use allowed values
 async function handleEventsList(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const venue = url.searchParams.get('venue') as 'farewell' | 'howdy' | null;
@@ -62,24 +95,15 @@ async function handleEventsList(request: Request, env: Env): Promise<Response> {
   const thumbnails = url.searchParams.get('thumbnails') === 'true';
 
   try {
-    // Get all events from KV
     let events = await getAllEvents(env);
-    
-    // Filter by venue if specified
-    if (venue && venue !== 'other') {
+    if (venue) {
       events = events.filter(event => event.venue === venue);
-    } else if (venue === 'other') {
-      events = events.filter(event => event.venue === 'other' || event.venue === 'both');
     }
-    
     // Sort by date (soonest first)
     events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
-    // Apply limit
     if (limit > 0) {
       events = events.slice(0, limit);
     }
-
     return Response.json({
       success: true,
       data: {
@@ -186,48 +210,44 @@ async function getEventById(eventId: string, env: Env): Promise<Response> {
   }
 }
 
+// Fix flyer file handling in create/update event
 async function createEvent(request: Request, env: Env): Promise<Response> {
   try {
     const formData = await request.formData();
-    
+    const venue = formData.get('venue');
     const newEvent: Event = {
       id: crypto.randomUUID(),
       title: formData.get('title') as string,
       date: formData.get('date') as string,
       time: formData.get('time') as string,
-      venue: formData.get('venue') as 'farewell' | 'howdy' | 'other',
+      venue: venue === 'farewell' || venue === 'howdy' ? venue : 'farewell',
       description: formData.get('description') as string || '',
       suggested_price: formData.get('suggestedPrice') as string || '',
       ticket_url: formData.get('ticketLink') as string || '',
       age_restriction: formData.get('ageRestriction') as string || '',
-      order: parseInt(formData.get('order') as string || '0'),
+      status: 'active',
+      featured: false,
+      slideshow_order: parseInt(formData.get('slideshow_order') as string || '0'),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      created_by: '',
+      last_modified_by: ''
     };
-    
     // Handle flyer upload if present
-    const flyerFile = formData.get('flyer') as File;
-    if (flyerFile && flyerFile.size > 0) {
+    const flyerFile = formData.get('flyer');
+    if (flyerFile && typeof flyerFile === 'object' && 'size' in flyerFile && (flyerFile as any).size > 0) {
       // TODO: Upload flyer to R2 and set URLs
-      // For now, just use placeholder
       newEvent.flyer_url = '/img/placeholder.png';
       newEvent.thumbnail_url = '/img/placeholder.png';
     }
-    
     // Get existing events
     const eventsData = await env.EVENTS_KV.get('events');
     let events: Event[] = [];
-    
     if (eventsData) {
       events = JSON.parse(eventsData);
     }
-    
-    // Add new event
     events.push(newEvent);
-    
-    // Save back to KV
     await env.EVENTS_KV.put('events', JSON.stringify(events));
-    
     return Response.json({
       success: true,
       data: newEvent
@@ -244,53 +264,51 @@ async function createEvent(request: Request, env: Env): Promise<Response> {
 async function updateEvent(eventId: string, request: Request, env: Env): Promise<Response> {
   try {
     const formData = await request.formData();
-    
-    // Get existing events
     const eventsData = await env.EVENTS_KV.get('events');
     let events: Event[] = [];
-    
     if (eventsData) {
       events = JSON.parse(eventsData);
     }
-    
     const eventIndex = events.findIndex(e => e.id === eventId);
-    
     if (eventIndex === -1) {
       return Response.json({
         success: false,
         error: 'Event not found'
       } satisfies ApiResponse, { status: 404 });
     }
-    
+    const venue = formData.get('venue');
     // Update event
-    const updatedEvent = {
-      ...events[eventIndex],
+    const existingEvent = events[eventIndex];
+    if (!existingEvent) {
+      return Response.json({
+        success: false,
+        error: 'Event not found'
+      } satisfies ApiResponse, { status: 404 });
+    }
+    const updatedEvent: Event = {
+      ...existingEvent,
+      id: existingEvent.id,
       title: formData.get('title') as string,
       date: formData.get('date') as string,
       time: formData.get('time') as string,
-      venue: formData.get('venue') as 'farewell' | 'howdy' | 'other',
+      venue: venue === 'farewell' || venue === 'howdy' ? venue : 'farewell',
       description: formData.get('description') as string || '',
       suggested_price: formData.get('suggestedPrice') as string || '',
       ticket_url: formData.get('ticketLink') as string || '',
       age_restriction: formData.get('ageRestriction') as string || '',
-      order: parseInt(formData.get('order') as string || '0'),
-      updated_at: new Date().toISOString()
+      status: existingEvent.status,
+      featured: existingEvent.featured,
+      slideshow_order: parseInt(formData.get('slideshow_order') as string || '0'),
+      updated_at: new Date().toISOString(),
     };
-    
-    // Handle flyer upload if present
-    const flyerFile = formData.get('flyer') as File;
-    if (flyerFile && flyerFile.size > 0) {
+    const flyerFile2 = formData.get('flyer');
+    if (flyerFile2 && typeof flyerFile2 === 'object' && 'size' in flyerFile2 && (flyerFile2 as any).size > 0) {
       // TODO: Upload flyer to R2 and set URLs
-      // For now, keep existing or use placeholder
-      updatedEvent.flyer_url = updatedEvent.flyer_url || '/img/placeholder.png';
-      updatedEvent.thumbnail_url = updatedEvent.thumbnail_url || '/img/placeholder.png';
+      updatedEvent.flyer_url = '/img/placeholder.png';
+      updatedEvent.thumbnail_url = '/img/placeholder.png';
     }
-    
     events[eventIndex] = updatedEvent;
-    
-    // Save back to KV
     await env.EVENTS_KV.put('events', JSON.stringify(events));
-    
     return Response.json({
       success: true,
       data: updatedEvent

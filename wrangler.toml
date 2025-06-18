@@ -1,0 +1,24 @@
+name = "fwhy-admin"
+main = "src/index.js"  # Adjust if using TypeScript
+compatibility_date = "2023-09-04"
+
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+# Add these bindings based on your docs
+kv_namespaces = [
+  { binding = "EVENTS_KV", id = "464d611d5ad8433cab6bcfba64d8424f" },
+  { binding = "SESSIONS_KV", id = "2038b95e785545af8486bc353c3cbe62" },
+  { binding = "GALLERY_KV", id = "3cd37bd71260436c8ed12078483e9fa4" },
+  { binding = "BLOG_KV", id = "6ee9ab6b71634a4eb3e66de82d8dfcdc" },
+  { binding = "CONFIG_KV", id = "d54801ef0fb0443e850ee532ad1384b6" }
+]
+
+[[d1_databases]]
+binding = "UNIFIED_DB"
+database_name = "fwhy_uni_db"
+database_id = "4f9ac7d3-ff64-45f5-a538-d8eb3b978f41"
+
+[[r2_buckets]]
+binding = "BLOG_IMAGES_R2"
+bucket_name = "fwhy-blog-images"
