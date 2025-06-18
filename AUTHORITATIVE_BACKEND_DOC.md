@@ -8,12 +8,13 @@ This is the authoritative documentation for the Farewell/Howdy unified admin bac
 
 ## Features
 
-- Unified event management (create, edit, delete, legacy merge)
-- Flyer/image upload and management (R2/KV, legacy support)
-- Unified calendar and slideshow endpoints
-- Blog/newsletter CRUD with Quill editor and image upload
-- Secure admin dashboard (session-based auth)
-- Modern TypeScript Cloudflare Worker backend
+- Unified CRUD for events and blog posts (legacy + new)
+- Quill editor with custom image upload for blog
+- Robust API: `/events`, `/blog/posts`, etc.
+- All config in `wrangler.jsonc` (no TOML)
+- Modern, normalized event and blog data
+- Admin dashboard: full CRUD, state switching, error handling
+- Logout: clears session/localStorage and reloads
 
 ---
 

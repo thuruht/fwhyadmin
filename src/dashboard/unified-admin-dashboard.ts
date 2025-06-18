@@ -46,6 +46,13 @@ export function generateUnifiedDashboardHTML(): string {
   <script>
     // Unified Admin Dashboard JS Logic
     const API_BASE = '/api';
+    // Logout function: clear session/localStorage and reload
+    function logout() {
+      // Clear any tokens or session info (customize as needed)
+      localStorage.clear();
+      sessionStorage.clear();n      document.cookie = '';
+      window.location.reload();
+    }
     // Utility: Fetch wrapper
     async function apiFetch(url, options = {}) {
       const res = await fetch(url, options);

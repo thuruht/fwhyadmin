@@ -28,7 +28,7 @@ export async function handleEvents(request: Request, env: Env, mode: 'list' | 's
   }
 }
 
-// Helper function to get all events from both new and legacy KV
+// Helper function to get all events from both new and legacy KV, and EVENTS_HOWDY/EVENTS_FAREWELL
 async function getAllEvents(env: Env): Promise<Event[]> {
   let events: Event[] = [];
   try {
@@ -53,7 +53,6 @@ async function getAllEvents(env: Env): Promise<Event[]> {
         try {
           const legacyEvents = JSON.parse(legacyData);
           for (const legacyEvent of legacyEvents) {
-            // Normalize legacy event fields to match new Event type
             events.push({
               id: legacyEvent.id,
               title: legacyEvent.title,
@@ -79,6 +78,35 @@ async function getAllEvents(env: Env): Promise<Event[]> {
           console.error(`Error parsing legacy events from ${legacyKey}:`, e);
         }
       }
+    }
+    // Add events from EVENTS_HOWDY and EVENTS_FAREWELL (if present)
+    const howdyData = await env.EVENTS_HOWDY?.get('current');
+    if (howdyData) {
+      try {
+        const howdyEvents = JSON.parse(howdyData);
+        for (const ev of howdyEvents) {
+          events.push({
+            ...ev,
+            venue: 'howdy',
+            flyer_url: ev.flyer_url || ev.flyerUrl || '',
+            thumbnail_url: ev.thumbnail_url || ev.thumbnailUrl || '',
+          });
+        }
+      } catch (e) { console.error('Error parsing EVENTS_HOWDY:', e); }
+    }
+    const farewellData = await env.EVENTS_FAREWELL?.get('current');
+    if (farewellData) {
+      try {
+        const farewellEvents = JSON.parse(farewellData);
+        for (const ev of farewellEvents) {
+          events.push({
+            ...ev,
+            venue: 'farewell',
+            flyer_url: ev.flyer_url || ev.flyerUrl || '',
+            thumbnail_url: ev.thumbnail_url || ev.thumbnailUrl || '',
+          });
+        }
+      } catch (e) { console.error('Error parsing EVENTS_FAREWELL:', e); }
     }
     return events;
   } catch (error) {
